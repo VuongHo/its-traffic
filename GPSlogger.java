@@ -14,6 +14,7 @@ public class GPSlogger {
 	private UDPListener udpListener;
 
 	public static void main(String args[]){
+		CPU.getInstance().start();
 		GPSlogger main = new GPSlogger(PORT);
 		main.startThreads();
 	}
