@@ -103,7 +103,7 @@ public class Task {
 		Double node_lon_s = (Double)((DBObject)segment.get("node_s")).get("node_lon");
 		Double node_lat_e = (Double)((DBObject)segment.get("node_e")).get("node_lat"); // By
 		Double node_lon_e = (Double)((DBObject)segment.get("node_e")).get("node_lon");
-
+		
 		switch (street_type){
 			case "primary":
 				width = width_of[PRIMARY_WAY]/110000;
@@ -124,15 +124,19 @@ public class Task {
 		// Qua A vtpt AB
 		Double a2 = node_lon_s - node_lon_e;
 		Double b2 = node_lat_s - node_lat_e;
-		Double c2 = -(a1*node_lon_s + b1*node_lat_s);
+		Double c2 = -(a2*node_lon_s + b2*node_lat_s);
 		// Qua B vtpt AB
 		Double a4 = node_lon_s - node_lon_e;
 		Double b4 = node_lat_s - node_lat_e;
-		Double c4 = -(a1*node_lon_e + b1*node_lat_e);
+		Double c4 = -(a4*node_lon_e + b4*node_lat_e);
 		// Song Song AB cach khoang width/2
-		Double a3 = a1/b1;
-		Double b3 = 1.0;
-		Double c3 = 2*(a3+b3)-width*Math.sqrt(a3*a3+1);
+		Double a3 = a1;
+		Double b3 = b1;
+		Double c3 = width*Math.sqrt(a3*a3+b3*b3)/2 - Math.abs(a3*node_lon_s+b3*node_lat_s);
+
+		Double a5 = a1;
+		Double b5 = b1;
+		Double c5 = -c3;
 
 		// DCEF
 		// Nghiem D
@@ -142,8 +146,8 @@ public class Task {
 		Double dX = (c2*b3 - c3*b2)/(a2*b3 - a3*b2);
 		Double dY = (a2*c3 - a3*c2)/(a2*b3 - a3*b2);
 		// Nghiem F
-		Double fX = 2*node_lon_s - dX;
-		Double fY = 2*node_lat_s - dY;
+		Double fX = (c2*b5 - c5*b2)/(a2*b5 - a5*b2);
+		Double fY = (a2*c5 - a5*c2)/(a2*b5 - a5*b2);
 		// Nghiem C
 		// Double c_D = a4*b3 - a3*b4;
 		// Double c_Dx = c4*b3 - c3*b4;
@@ -151,17 +155,17 @@ public class Task {
 		Double cX = (c4*b3 - c3*b4)/(a4*b3 - a3*b4);
 		Double cY = (a4*c3 - a3*c4)/(a4*b3 - a3*b4);
 		// Nghiem E
-		Double eX = 2*node_lon_e - cX;
-		Double eY = 2*node_lat_e - cY;
-
+		Double eX = (c4*b5 - c5*b4)/(a4*b5 - a5*b4);
+		Double eY = (a4*c5 - a5*c4)/(a4*b5 - a5*b4);
 
 		int[] xpoints = new int[]{(int)(dX*100000),(int)(cX*100000),(int)(eX*100000),(int)(fX*100000)};
 		int[] ypoints = new int[]{(int)(dY*100000),(int)(cY*100000),(int)(eY*100000),(int)(fY*100000)};
 		int npoints = 4;
 		Polygon polygon = new Polygon(xpoints, ypoints, npoints);
 		logger.info("------------"+ ((DBObject)segment.get("street")).get("street_type") + " " + width);
-		logger.info("------------"+ xpoints[0] + " - " + xpoints[1] + " - " + xpoints[2] + " - " + xpoints[3] + " " + width);
-		logger.info("------------"+ ypoints[0] + " - " + ypoints[1] + " - " + ypoints[2] + " - " + ypoints[3] + " " + width);
+		logger.info("------------"+ dX + " - " + cX + " - " + eX + " - " + fX + " " + width);
+		logger.info("------------"+ dY + " - " + cY + " - " + eY + " - " + fY + " " + width);
+		logger.info("------------"+ longitude + "  " + latitude);
 		return polygon.contains(longitude*100000, latitude*100000);
 	}
 	
