@@ -48,10 +48,10 @@ public class GPSlogger {
 			try {
 				DatagramSocket serverSocket = new DatagramSocket(port);
 				serverSocket.setSoTimeout(9000);
-				byte[] receiveData = new byte[1024];
-				byte[] sendData = new byte[1024];
 				while(isRunning()){
 					try {
+						byte[] receiveData = new byte[1024];
+						byte[] sendData = new byte[1024];
 						DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 						serverSocket.receive(receivePacket);
 						String gps_data = new String(receivePacket.getData());

@@ -20,7 +20,7 @@ public class Task {
 	private static int SECONDARY_WAY = 1;
 	private static int TERTIARY = 2;
 	private static int OTHER_WAY = 3;
-	private static float[] width_of = new float[]{15,10,8,5};
+	private static float[] width_of = new float[]{30,30,30,30};
 	private boolean status;
 	
 	public Task(String device_id, Double latitude, Double longitude, Float speed, String date, int frame){
@@ -43,7 +43,7 @@ public class Task {
 			MongoClient mongoClient = new MongoClient("localhost", 27017 );
 			db = mongoClient.getDB("hcm_traffic");
 			DBCollection segmentspeed_co = db.getCollection("segmentspeed");
-			DBCollection segment_cell_co = db.getCollection("segment_cell");
+			DBCollection segment_cell_co = db.getCollection("segment_cell_details");
 			DBCollection segment_co = db.getCollection("segment");
 			DBCollection street_co = db.getCollection("street");
 			BasicDBObject query = new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y);
@@ -129,44 +129,14 @@ public class Task {
 		Double a4 = node_lon_s - node_lon_e;
 		Double b4 = node_lat_s - node_lat_e;
 		Double c4 = -(a4*node_lon_e + b4*node_lat_e);
-		// Song Song AB cach khoang width/2
-		Double a3 = a1;
-		Double b3 = b1;
-		Double c3 = width*Math.sqrt(a3*a3+b3*b3)/2 - Math.abs(a3*node_lon_s+b3*node_lat_s);
 
-		Double a5 = a1;
-		Double b5 = b1;
-		Double c5 = -c3;
+		Double d_node_AB = Math.abs(longitude*a1 + latitude*b1 + c1)/Math.sqrt(Math.pow(a1,2)+Math.pow(b1,2));
 
-		// DCEF
-		// Nghiem D
-		// Double d_D = a2*b3 - a3*b2;
-		// Double d_Dx = c2*b3 - c3*b2;
-		// Double d_Dy = a2*c3 - a3*c2;
-		Double dX = (c2*b3 - c3*b2)/(a2*b3 - a3*b2);
-		Double dY = (a2*c3 - a3*c2)/(a2*b3 - a3*b2);
-		// Nghiem F
-		Double fX = (c2*b5 - c5*b2)/(a2*b5 - a5*b2);
-		Double fY = (a2*c5 - a5*c2)/(a2*b5 - a5*b2);
-		// Nghiem C
-		// Double c_D = a4*b3 - a3*b4;
-		// Double c_Dx = c4*b3 - c3*b4;
-		// Double c_Dy = a4*c3 - a3*c4;
-		Double cX = (c4*b3 - c3*b4)/(a4*b3 - a3*b4);
-		Double cY = (a4*c3 - a3*c4)/(a4*b3 - a3*b4);
-		// Nghiem E
-		Double eX = (c4*b5 - c5*b4)/(a4*b5 - a5*b4);
-		Double eY = (a4*c5 - a5*c4)/(a4*b5 - a5*b4);
+		if (d_node_AB > width/2) return false;
 
-		int[] xpoints = new int[]{(int)(dX*100000),(int)(cX*100000),(int)(eX*100000),(int)(fX*100000)};
-		int[] ypoints = new int[]{(int)(dY*100000),(int)(cY*100000),(int)(eY*100000),(int)(fY*100000)};
-		int npoints = 4;
-		Polygon polygon = new Polygon(xpoints, ypoints, npoints);
-		logger.info("------------"+ ((DBObject)segment.get("street")).get("street_type") + " " + width);
-		logger.info("------------"+ dX + " - " + cX + " - " + eX + " - " + fX + " " + width);
-		logger.info("------------"+ dY + " - " + cY + " - " + eY + " - " + fY + " " + width);
-		logger.info("------------"+ longitude + "  " + latitude);
-		return polygon.contains(longitude*100000, latitude*100000);
+		if ((longitude*a2 + latitude*b2 + c2)*(longitude*a4 + latitude*b4 + c4) > 0) return false;
+
+		return true;
 	}
 	
 	public boolean completed(){
