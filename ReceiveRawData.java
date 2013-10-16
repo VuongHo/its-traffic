@@ -35,19 +35,17 @@ public class ReceiveRawData{
 																					date,
 																					frameTemp));
 
-			MongoClient mongoClient = new MongoClient("localhost", 27017 );
-			db = mongoClient.getDB("hcm_traffic");
-			DBCollection gpsData = db.getCollection("GPSdata");
-			BasicDBObject doc = new BasicDBObject("device_id", data[0]).
-																append("latitude", Float.parseFloat(data[1])).
-																append("longitude", Float.parseFloat(data[2])).
-																append("speed", Float.parseFloat(data[3])).
-																append("reliability", Float.parseFloat(data[4])).
-																append("number_of_satellites", Float.parseFloat(data[5])).
-																append("current_time", new BasicDBObject("date", date).append("frame", frameTemp).append("time", time));
-	    gpsData.insert(doc);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			// MongoClient mongoClient = new MongoClient("localhost", 27017 );
+			// db = mongoClient.getDB("hcm_traffic");
+			// DBCollection gpsData = db.getCollection("GPSdata");
+			// BasicDBObject doc = new BasicDBObject("device_id", data[0]).
+			// 													append("latitude", Float.parseFloat(data[1])).
+			// 													append("longitude", Float.parseFloat(data[2])).
+			// 													append("speed", Float.parseFloat(data[3])).
+			// 													append("reliability", Float.parseFloat(data[4])).
+			// 													append("number_of_satellites", Float.parseFloat(data[5])).
+			// 													append("current_time", new BasicDBObject("date", date).append("frame", frameTemp).append("time", time));
+	  //   gpsData.insert(doc);
 		} catch (Exception e) {
 			System.err.println("Some thing went wrong with mongo!");
 		}

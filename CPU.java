@@ -25,6 +25,7 @@ public class CPU implements Runnable {
 	@Override
 	public void run(){
 		logger.info("CPU runs");
+		long dem = 1;
 		try{
 			mongoClient = new MongoClient("localhost", 27017 );
 		}catch(UnknownHostException e){
@@ -85,8 +86,9 @@ public class CPU implements Runnable {
 					}
 
 				}catch(Exception e){
-					System.err.println("Some thing went wrong with mongo!");
+					logger.info("Some thing went wrong with mongo!- " +dem);
 				}
+				dem++;
 				currentTask = null;
 			}else{
 				if(runQueue.isEmpty()){
