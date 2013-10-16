@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 class GPSSender {
 	// private static String LOCAL_BROADCAST_ADDRESS = "203.162.44.52";
@@ -25,64 +27,34 @@ class GPSSender {
 		String date;
 		int hour, min;
 		int frame;
-		int count=0;
-		int count2=0;
-		int count10=0;
-		int count20=0;
-		int count0=0;
-	 
+
+	 	SimpleDateFormat timeformat = new SimpleDateFormat ("HH:mm:ss");
 		try {
-	 
-			br = new BufferedReader(new FileReader(csvFile));
-			while ((line = br.readLine()) != null) {
-	 
-			        // use comma as separator
-				String[] values = line.split(",");
-				
-				deviceid = Integer.parseInt(values[0]);
-				latPos = Double.parseDouble(values[1]);
-				longPos = Double.parseDouble(values[2]);
-				speed = Float.parseFloat(values[3]);
-				date = values[6].substring(0, 10);
-				hour = Integer.parseInt(values[6].substring(11, 13));
-				min = Integer.parseInt(values[6].substring(14, 16));
-				
-				System.out.println("Starting.... ");
-				try {
-					System.out.println(line);
-	    		byte[] receiveData = new byte[1024];
-					String message = deviceid + "," + latPos + "," + longPos + "," + speed + ",0,0";
-					DatagramSocket clientSocket = new DatagramSocket();
-					InetAddress IPAddress = InetAddress.getByName(LOCAL_BROADCAST_ADDRESS);
-					DatagramPacket sendPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, IPAddress, PORT);
-					clientSocket.send(sendPacket);
-					DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			while(true){
+				br = new BufferedReader(new FileReader(csvFile));
+				while ((line = br.readLine()) != null) {
+					String[] values = line.split(",");
+					deviceid = Integer.parseInt(values[0]);
+					latPos = Double.parseDouble(values[1]);
+					longPos = Double.parseDouble(values[2]);
+					speed = Float.parseFloat(values[3]);
+					date = values[6].substring(0, 10);
+					hour = Integer.parseInt(values[6].substring(11, 13));
+					min = Integer.parseInt(values[6].substring(14, 16));
 
-					// Receive data from server
-			    clientSocket.receive(receivePacket);
-			    String modifiedSentence = new String(receivePacket.getData());
-			    System.out.println("FROM SERVER:" + modifiedSentence);
-			    clientSocket.close();
-				}catch(Exception e) {
-					e.printStackTrace();
+					Date today = new Date();
+					String time=timeformat.format(today);
+					String current_time = values[6].substring(11, 19);
+					
+		 			if(time.equals(current_time)){
+		 				String message = deviceid + "," + latPos + "," + longPos + "," + speed + ",0,0";
+		 				UDPSender sender = new UDPSender(PORT, message);
+            sender.start();
+		 			}else{
+		 				continue;
+		 			}
 				}
-
-		//			System.out.println(line);
-		//			System.out.println(deviceid);
-		//			System.out.println(latPos);
-		//			System.out.println(longPos);
-		//			System.out.println(speed);
-		//			System.out.println(date);
-		//			System.out.println(hour);
-		//			System.out.println(min);
-				count++;
-				if (speed==0) count0++;
-				else if (speed >0 && speed <10) count2++;
-				else if (speed >=10 && speed <20) count10++;
-				else count20++;
-	 
 			}
-	 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -96,13 +68,38 @@ class GPSSender {
 				}
 			}
 		}
-	 
-		System.out.println("Done");
-		System.out.println("total of "+count);
-		System.out.println("0 "+count0);
-		System.out.println("0< <10 : "+count2);
-		System.out.println("10=< <20 : "+count10);
-		System.out.println(">=20: "+count20);
-	
   }
+
+private class UDPSender extends Thread{
+    int port;
+    String message;
+    public UDPSender(int port, String message)
+    {
+        this.port = port;
+        this.message = message;
+    }
+    public void run()
+    {
+        System.out.println("Starting "+this.getClass().toString());
+        try
+        {
+            byte[] receiveData = new byte[1024];
+						DatagramSocket clientSocket = new DatagramSocket();
+						InetAddress IPAddress = InetAddress.getByName(LOCAL_BROADCAST_ADDRESS);
+						DatagramPacket sendPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, IPAddress, port);
+						clientSocket.send(sendPacket);
+						DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+						// Receive data from server
+				    clientSocket.receive(receivePacket);
+				    String modifiedSentence = new String(receivePacket.getData());
+				    System.out.println("FROM SERVER:" + modifiedSentence);
+				    clientSocket.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+}
 }
