@@ -2,7 +2,9 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 class GPSSender {
 	// private static String LOCAL_BROADCAST_ADDRESS = "203.162.44.52";
@@ -15,9 +17,7 @@ class GPSSender {
 		obj.run();
 	}
 
-	public void run() {
- 
-		String csvFile = "processedData/Monday.txt";
+	public void run() { 		
 		BufferedReader br = null;
 		String line = "";
 		int deviceid;
@@ -31,6 +31,33 @@ class GPSSender {
 	 	SimpleDateFormat timeformat = new SimpleDateFormat ("HH:mm:ss");
 		try {
 			while(true){
+				Calendar localCalendar = Calendar.getInstance(TimeZone.getDefault());
+				Date currentTime = localCalendar.getTime();
+				int currentDayOfWeek = localCalendar.get(Calendar.DAY_OF_WEEK);
+				String csvFile = "";
+				switch(currentDayOfWeek){
+					case 1:
+						csvFile = "processedData/Sunday.txt";
+						break;
+					case 2:
+						csvFile = "processedData/Monday.txt";
+						break;
+					case 3:
+						csvFile = "processedData/Tuesday.txt";
+						break;
+					case 4:
+						csvFile = "processedData/Wednesday.txt";
+						break;
+					case 5:
+						csvFile = "processedData/Thursday.txt";
+						break;
+					case 6:
+						csvFile = "processedData/Friday.txt";
+						break;
+					case 7:
+						csvFile = "processedData/Saturday.txt";
+						break;
+				}
 				br = new BufferedReader(new FileReader(csvFile));
 				while ((line = br.readLine()) != null) {
 					String[] values = line.split(",");
