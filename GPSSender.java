@@ -146,6 +146,11 @@ class GPSSender {
 				 				String message = device_id + "," + latPos + "," + longPos + "," + speed + ",0,0";
 				 				UDPSender sender = new UDPSender(PORT, message);
 		            sender.start();
+		            try{
+									Thread.sleep(1000);
+								} catch (InterruptedException e){
+									e.printStackTrace();
+								}
 				 			}else{
 				 				continue;
 				 			}
@@ -182,6 +187,7 @@ class GPSSender {
 	        {
 	            byte[] receiveData = new byte[1024];
 							DatagramSocket clientSocket = new DatagramSocket();
+							clientSocket.setSoTimeout(2000);
 							InetAddress IPAddress = InetAddress.getByName(LOCAL_BROADCAST_ADDRESS);
 							DatagramPacket sendPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, IPAddress, port);
 							clientSocket.send(sendPacket);
@@ -192,7 +198,10 @@ class GPSSender {
 					    String modifiedSentence = new String(receivePacket.getData());
 					    System.out.println("FROM SERVER:" + modifiedSentence);
 					    clientSocket.close();
-	        }
+	        }catch (SocketTimeoutException ex) {
+						System.out.println("Receive timed out!");
+						// ex.printStackTrace();
+					}
 	        catch(Exception e)
 	        {
 	            e.printStackTrace();
