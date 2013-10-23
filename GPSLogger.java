@@ -6,7 +6,7 @@
 import java.io.*;
 import java.net.*;
 
-public class GPSlogger {
+public class GPSLogger {
 	// private static String LOCAL_BROADCAST_ADDRESS = "203.162.44.52";
 	// private static int PORT = 180;
 	private static String LOCAL_BROADCAST_ADDRESS = "127.0.0.1";
@@ -15,11 +15,11 @@ public class GPSlogger {
 
 	public static void main(String args[]){
 		CPU.getInstance().start();
-		GPSlogger main = new GPSlogger(PORT);
+		GPSLogger main = new GPSLogger(PORT);
 		main.startThreads();
 	}
 
-	public GPSlogger(int port){
+	public GPSLogger(int port){
 		udpListener = new UDPListener(port);
 	}
 

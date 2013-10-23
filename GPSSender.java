@@ -9,8 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 class GPSSender {
-	// private static String LOCAL_BROADCAST_ADDRESS = "203.162.44.52";
-	// private static int PORT = 180;
+	// private static String LOCAL_BROADCAST_ADDRESS = "172.28.10.96";
+	// private static int PORT = 170;
 	private static String LOCAL_BROADCAST_ADDRESS = "127.0.0.1";
 	private static int PORT = 9876;
 	private boolean isRunning = true;
