@@ -28,7 +28,7 @@ public class ReceiveRawData{
 			time=timeformat.format(today);
 			System.out.println("Date is " +date+" at "+ time);
 
-			CPU.getInstance().addTask(new Task( data[0], 
+			QueueTask.getInstance().pushTask(new Task( data[0], 
 																					Float.parseFloat(data[1]),
 																					Float.parseFloat(data[2]),
 																					Float.parseFloat(data[3]),

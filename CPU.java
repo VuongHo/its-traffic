@@ -1,18 +1,16 @@
 import com.mongodb.*;
 import java.net.UnknownHostException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 
 public class CPU implements Runnable {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
-	private static CPU cpu = new CPU();
+	private static CPU cpu1 = new CPU();
+	private static CPU cpu2 = new CPU();
 	private DB db;
 	private boolean isRunning;
 	private Task currentTask;
 	private Thread thread;
-	private Queue<Task> runQueue = new ConcurrentLinkedQueue<Task>();
 
 	private CPU() {
 		if(MongoDB.check == false) MongoDB.openConnection();
@@ -20,8 +18,10 @@ public class CPU implements Runnable {
 		thread = new Thread(this);
 	}
 	
-	public static CPU getInstance(){
-		return cpu;
+	public static CPU getInstance(int cpu_id){
+		System.out.println("Start CPU");
+		if(cpu_id == 1) return cpu1;
+		else return cpu2;
 	}
 	
 	@Override
@@ -83,7 +83,7 @@ public class CPU implements Runnable {
 				}
 				currentTask = null;
 			}else{
-				if(runQueue.isEmpty()){
+				if(QueueTask.getInstance().isEmpty()){
 					try{
 						logger.info("dile");
 						Thread.sleep(1000);
@@ -91,7 +91,7 @@ public class CPU implements Runnable {
 						e.printStackTrace();
 					}
 				}else{
-					Task task = runQueue.poll();
+					Task task = QueueTask.getInstance().popTask();
 					setCurrentTask(task);
 				}
 				
@@ -106,10 +106,5 @@ public class CPU implements Runnable {
 	
 	public void setCurrentTask(Task currentTask){
 		this.currentTask = currentTask;
-	}
-	
-	public void addTask(Task task) {
-		runQueue.offer(task);
-	}
-	
+	}	
 }
