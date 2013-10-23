@@ -8,13 +8,15 @@ import java.util.logging.Logger;
 public class CPU implements Runnable {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
 	private static CPU cpu = new CPU();
-	private static MongoClient mongoClient;
+	private DB db;
 	private boolean isRunning;
 	private Task currentTask;
 	private Thread thread;
 	private Queue<Task> runQueue = new ConcurrentLinkedQueue<Task>();
 
 	private CPU() {
+		if(MongoDB.check == false) MongoDB.openConnection();
+		db = MongoDB.db;
 		thread = new Thread(this);
 	}
 	
@@ -24,12 +26,6 @@ public class CPU implements Runnable {
 	
 	@Override
 	public void run(){
-		logger.info("CPU runs");
-		try{
-			mongoClient = new MongoClient("localhost", 27017 );
-		}catch(UnknownHostException e){
-		}
-
 		while(isRunning){
 			if(currentTask != null){
 				int cell_x = currentTask.cellX();	
@@ -39,8 +35,6 @@ public class CPU implements Runnable {
 				float speed = currentTask.getSpeed();
 
 				try{
-					DB db;
-					db = mongoClient.getDB("hcm_traffic");
 					DBCollection segmentspeed_co = db.getCollection("segmentspeed");
 					DBCollection segment_cell_co = db.getCollection("segment_cell_details");
 					DBCollection segment_co = db.getCollection("segment");
