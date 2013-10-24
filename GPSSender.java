@@ -142,7 +142,7 @@ class GPSSender {
 							String time=timeformat.format(today);
 							String current_time = values[6].substring(11, 19);
 							
-				 			if(time.equals(current_time) && (deviceid == deviceid)) {
+				 			if(time.equals(current_time)) {
 				 				String message = device_id + "," + latPos + "," + longPos + "," + speed + ",0,0";
 				 				UDPSender sender = new UDPSender(PORT, message);
 		            sender.start();
