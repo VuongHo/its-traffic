@@ -25,17 +25,27 @@ class GPSSender {
     Scanner scan = new Scanner(System.in);
     while(isRunning)
     {
-      System.out.println("waiting input (exit)");
+      System.out.println("Enter (exit) to break out!");
+      System.out.println("Enter (onlyone) to send one by one");
+      System.out.println("Enter (withdevice) to send your numbers of device");
       String line = scan.nextLine();
       if(line.equalsIgnoreCase("exit"))
       {
-        System.out.println("Shutting down server...");
+        System.out.println("Shutting down client socket...");
         isRunning = false;
+      }else if (line.equalsIgnoreCase("onlyone")){
+      	while(true){
+      		String csvFile = getCsvFile();
+      		UserInputThread newDevice = new UserInputThread(0, csvFile);
+					newDevice.start();
+      	}
       }
-      else
+      else if (line.equalsIgnoreCase("device"))
       {
+      	System.out.println("Enter numbers of device");
+      	String num = scan.nextLine();
        	try{
-      		int numberOfDevice = Integer.parseInt(line);
+      		int numberOfDevice = Integer.parseInt(num);
       		String row = "";
       		String csvFile = getCsvFile();
       		List<Integer> listDevice = new LinkedList<Integer>();
@@ -144,8 +154,14 @@ class GPSSender {
 							
 				 			if(time.equals(current_time)) {
 				 				String message = device_id + "," + latPos + "," + longPos + "," + speed + ",0,0";
-				 				UDPSender sender = new UDPSender(PORT, message);
-		            sender.start();
+				 				if (deviceid == device_id && deviceid != 0){
+				 					UDPSender sender = new UDPSender(PORT, message);
+		            	sender.start();
+				 				}
+				 				if (deviceid == 0){
+				 					UDPSender sender = new UDPSender(PORT, message);
+		            	sender.start();
+				 				}
 		            try{
 									Thread.sleep(1000);
 								} catch (InterruptedException e){

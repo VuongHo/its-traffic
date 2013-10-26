@@ -1,7 +1,6 @@
 import com.mongodb.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.awt.Polygon;
 import java.util.logging.Logger;
 
 public class Task {

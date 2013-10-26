@@ -2,11 +2,12 @@
 * The purpose of method is used to save the raw data, and automatic data processing
 */
 
-
 import java.io.*;
 import java.net.*;
+import java.util.logging.Logger;
 
 public class GPSLogger {
+	private static Logger logger = Logger.getLogger(CPU.class.getName());
 	// private static String LOCAL_BROADCAST_ADDRESS = "203.162.44.52";
 	// private static int PORT = 180;
 	private static String LOCAL_BROADCAST_ADDRESS = "127.0.0.1";
@@ -16,6 +17,9 @@ public class GPSLogger {
 	public static void main(String args[]){
 		CPU.getInstance(1).start();
 		CPU.getInstance(2).start();
+		CPU.getInstance(3).start();
+		CPU.getInstance(4).start();
+		CPU.getInstance(5).start();
 		GPSLogger main = new GPSLogger(PORT);
 		main.startThreads();
 	}
@@ -45,7 +49,7 @@ public class GPSLogger {
 		}
 
 		public void run() {
-			System.out.println("Starting " + this.getClass().toString());
+			logger.info("Starting... " + this.getClass().toString());
 			try {
 				DatagramSocket serverSocket = new DatagramSocket(port);
 				serverSocket.setSoTimeout(9000);
@@ -56,7 +60,7 @@ public class GPSLogger {
 						DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 						serverSocket.receive(receivePacket);
 						String gps_data = new String(receivePacket.getData());
-						System.out.println("RECEIVE: " + gps_data + " size: " + receivePacket.getLength() + " bytes" + " - " + receivePacket.getAddress());
+						logger.info("RECEIVE: " + gps_data + " size: " + receivePacket.getLength() + " bytes" + " - " + receivePacket.getAddress());
 
 						// Save data
 						ReceiveRawData new_data = new ReceiveRawData();
@@ -71,14 +75,13 @@ public class GPSLogger {
 			    	serverSocket.send(sendPacket);
 					}
 					catch (SocketTimeoutException ex) {
-						System.out.println("Receive timed out!");
 						// ex.printStackTrace();
 					}
 					catch (Exception e){
 						e.printStackTrace();
 					}
 				}
-				System.out.println("Done!");
+				logger.info("Exit!");
 			}
 			catch (Exception e) {
 				e.printStackTrace();

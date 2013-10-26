@@ -7,6 +7,9 @@ public class CPU implements Runnable {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
 	private static CPU cpu1 = new CPU();
 	private static CPU cpu2 = new CPU();
+	private static CPU cpu3 = new CPU();
+	private static CPU cpu4 = new CPU();
+	private static CPU cpu5 = new CPU();
 	private DB db;
 	private boolean isRunning;
 	private Task currentTask;
@@ -19,9 +22,21 @@ public class CPU implements Runnable {
 	}
 	
 	public static CPU getInstance(int cpu_id){
-		System.out.println("Start CPU");
-		if(cpu_id == 1) return cpu1;
-		else return cpu2;
+		logger.info("Start CPU"+cpu_id);
+		switch(cpu_id){
+			case 1:
+				return cpu1;
+			case 2:
+				return cpu2;
+			case 3:
+				return cpu3;
+			case 4:
+			  return cpu4;
+			case 5:
+			  return cpu5;
+			default:
+				return cpu1;
+		}
 	}
 	
 	@Override
@@ -85,7 +100,6 @@ public class CPU implements Runnable {
 			}else{
 				if(QueueTask.getInstance().isEmpty()){
 					try{
-						logger.info("dile");
 						Thread.sleep(1000);
 					} catch (InterruptedException e){
 						e.printStackTrace();
