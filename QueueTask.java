@@ -26,4 +26,7 @@ public class QueueTask{
 	public boolean isEmpty(){
 		return runQueue.isEmpty();
 	}
+	public void removeAll(){
+		runQueue = new ConcurrentLinkedQueue<Task>();
+	}
 }

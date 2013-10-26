@@ -1,7 +1,7 @@
 import com.mongodb.*;
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
-
+import java.util.Date;
 
 public class CPU implements Runnable {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
@@ -106,7 +106,8 @@ public class CPU implements Runnable {
 					}
 				}else{
 					Task task = QueueTask.getInstance().popTask();
-					setCurrentTask(task);
+					if (task.getFrame() < currentFrame()) continue;
+					else setCurrentTask(task);
 				}
 				
 			}
@@ -121,4 +122,13 @@ public class CPU implements Runnable {
 	public void setCurrentTask(Task currentTask){
 		this.currentTask = currentTask;
 	}	
+
+	public int currentFrame(){
+		//Real Time
+		Date today = new Date();
+		int hour = today.getHours();
+		int minute = today.getMinutes();
+		int frame = hour*4 + (int)(minute/15);
+		return frame;
+	}
 }
