@@ -52,7 +52,7 @@ public class GPSLogger {
 			logger.info("Starting... " + this.getClass().toString());
 			try {
 				DatagramSocket serverSocket = new DatagramSocket(port);
-				serverSocket.setSoTimeout(9000);
+				serverSocket.setSoTimeout(2000);
 				while(isRunning()){
 					try {
 						byte[] receiveData = new byte[1024];

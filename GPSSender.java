@@ -27,7 +27,7 @@ class GPSSender {
     {
       System.out.println("Enter (exit) to break out!");
       System.out.println("Enter (onlyone) to send one by one");
-      System.out.println("Enter (withdevice) to send your numbers of device");
+      System.out.println("Enter (device) to send your numbers of device");
       String line = scan.nextLine();
       if(line.equalsIgnoreCase("exit"))
       {
