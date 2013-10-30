@@ -12,7 +12,6 @@ public class CPU implements Runnable {
 	private static CPU cpu2 = new CPU();
 	private static CPU cpu3 = new CPU();
 	private static CPU cpu4 = new CPU();
-	private static CPU cpu5 = new CPU();
 	private DB db;
 	private boolean isRunning;
 	private Task currentTask;
@@ -35,8 +34,6 @@ public class CPU implements Runnable {
 				return cpu3;
 			case 4:
 			  return cpu4;
-			case 5:
-			  return cpu5;
 			default:
 				return cpu1;
 		}
@@ -62,11 +59,12 @@ public class CPU implements Runnable {
 					// Need cache here
 					String cell_key = Integer.toString(cell_x) + Integer.toString(cell_y);
 					String segment_cell_cached = (String) Memcache.getInstance().get(cell_key);
-					if (segment_cell_cached != null) {
-						logger.info("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
-					}else{
-						logger.info("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+					if (segment_cell_cached == null) {
 						DBCursor cursor = segment_cell_co.find(query);
+						if (cursor.length() == 0){
+							currentTask = null;
+							continue;
+						}
 						String json = JSON.serialize(cursor);
 						// Expire at next 1 minutes
 						Date expire_at = Memcache.getInstance().expiringTime();
