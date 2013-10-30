@@ -57,7 +57,7 @@ public class CPU implements Runnable {
 					BasicDBObject query = new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y);
 
 					// Need cache here
-					String cell_key = Integer.toString(cell_x) + Integer.toString(cell_y);
+					String cell_key = Integer.toString(cell_x) + "v-d" + Integer.toString(cell_y);
 					String segment_cell_cached = (String) Memcache.getInstance().get(cell_key);
 					if (segment_cell_cached == null) {
 						DBCursor cursor = segment_cell_co.find(query);
