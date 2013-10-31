@@ -78,9 +78,9 @@ public class Memcache {
 		return client.flushAll();
 	}
 
-	public Date expiringTime(){
+	public Date expiringTime(int minutes){
 		Calendar later = Calendar.getInstance();
-   	later.add(Calendar.MINUTE, 1);
+   	later.add(Calendar.MINUTE, minutes);
    	Date laterTime = later.getTime();
    	return laterTime;
 	}

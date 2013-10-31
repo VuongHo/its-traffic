@@ -67,7 +67,7 @@ public class CPU implements Runnable {
 						}
 						String json = JSON.serialize(cursor);
 						// Expire at next 1 minutes
-						Date expire_at = Memcache.getInstance().expiringTime();
+						Date expire_at = Memcache.getInstance().expiringTime(15);
 						Memcache.getInstance().add(cell_key, json, expire_at);
 						segment_cell_cached = json;
 					}
