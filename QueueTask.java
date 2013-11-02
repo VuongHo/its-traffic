@@ -1,10 +1,13 @@
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
-
+import java.util.Date;
 public class QueueTask{
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
 	private static QueueTask instance = null;
+	private static int dem1 = 0;
+	private static int dem2 = 0;
+	private static Date today = new Date();
 	private Queue<Task> runQueue;
 	protected QueueTask(){
 		runQueue = new ConcurrentLinkedQueue<Task>();
@@ -17,7 +20,6 @@ public class QueueTask{
 	}
 	public void pushTask(Task task) {
 		runQueue.offer(task);
-		logger.info("Queue size: "+runQueue.size());
 	}
 	public Task popTask() {
 		Task task = runQueue.poll();
@@ -28,5 +30,21 @@ public class QueueTask{
 	}
 	public void removeAll(){
 		runQueue = new ConcurrentLinkedQueue<Task>();
+	}
+	public void increase(){
+		dem1++;
+	}
+	public int getIncrease(){
+		return dem1;
+	}
+	public void increase2(){
+		dem2++;
+	}
+	public int getIncrease2(){
+		return dem2;
+	}
+
+	public Date getdate(){
+		return today;
 	}
 }

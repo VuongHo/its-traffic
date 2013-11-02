@@ -21,58 +21,69 @@ class GPSSender {
 	}
 
 	public void run(){
-		System.out.println("Enter numbers of device your want to run");
-    Scanner scan = new Scanner(System.in);
-    while(isRunning)
-    {
-      System.out.println("Enter (exit) to break out!");
-      System.out.println("Enter (onlyone) to send one by one");
-      System.out.println("Enter (device) to send your numbers of device");
-      String line = scan.nextLine();
-      if(line.equalsIgnoreCase("exit"))
-      {
-        System.out.println("Shutting down client socket...");
-        isRunning = false;
-      }else if (line.equalsIgnoreCase("onlyone")){
-      	while(true){
-      		String csvFile = getCsvFile();
-      		UserInputThread newDevice = new UserInputThread(0, csvFile);
-					newDevice.start();
-      	}
-      }
-      else if (line.equalsIgnoreCase("device"))
-      {
-      	System.out.println("Enter numbers of device");
-      	String num = scan.nextLine();
-       	try{
-      		int numberOfDevice = Integer.parseInt(num);
-      		String row = "";
-      		String csvFile = getCsvFile();
-      		List<Integer> listDevice = new LinkedList<Integer>();
-      		int count = 0;
-      		BufferedReader br = new BufferedReader(new FileReader(csvFile));
-					while ((row = br.readLine()) != null){
-						String[] values = row.split(",");
-						int deviceid = Integer.parseInt(values[0]);
-						System.out.println("Device"+checkDevice(listDevice, deviceid)+" is running!");
-						if (checkDevice(listDevice, deviceid) == false || listDevice != null){
-							listDevice.add(deviceid);
-							// TODO
-							UserInputThread newDevice = new UserInputThread(deviceid, csvFile);
-							newDevice.start();
-							count++;
-							System.out.println("Device"+count+" is running!");
-							if(count == numberOfDevice) break;
-						}
-					} 
-      	} catch (FileNotFoundException e) {
-					e.printStackTrace();
+		BufferedReader br = null;
+		String line = "";
+		int device_id;
+		double latPos;
+		double longPos;
+		float speed;
+		String date;
+		int hour, min;
+		int frame;
+		String csvFile = getCsvFile();
+	 	SimpleDateFormat timeformat = new SimpleDateFormat ("HH:mm:ss");
+	 	int dem = 0;
+	 	Calendar later = Calendar.getInstance();
+   	later.add(Calendar.SECOND, 1);
+   	Date laterTime = later.getTime();
+		try {
+			while(true){
+				br = new BufferedReader(new FileReader(csvFile));
+				while ((line = br.readLine()) != null) {
+					String[] values = line.split(",");
+					device_id = Integer.parseInt(values[0]);
+					latPos = Double.parseDouble(values[1]);
+					longPos = Double.parseDouble(values[2]);
+					speed = Float.parseFloat(values[3]);
+					date = values[6].substring(0, 10);
+					hour = Integer.parseInt(values[6].substring(11, 13));
+					min = Integer.parseInt(values[6].substring(14, 16));
+
+					Date today = new Date();
+					String time=timeformat.format(today);
+					String current_time = values[6].substring(11, 19);
+					
+		 			String message = device_id + "," + latPos + "," + longPos + "," + speed + ",0,0";
+		 			UDPSender sender = new UDPSender(PORT, message);
+          sender.start();
+
+          dem++;
+					//if(dem == 250) break;
+					// if(dem == 500 || today.compareTo(laterTime) > 0) break;
+					if(today.compareTo(laterTime) > 0) break;
+				}
+				//if (dem == 250) break;
+
+				Date today = new Date();
+				// if(dem == 500 || today.compareTo(laterTime) > 0) break;
+				if(today.compareTo(laterTime) > 0) break;
+			}
+			System.out.println("Sent: "+dem);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-      }
-    }
-	}
+			}
+		}
+  }
+	
 
   public boolean checkDevice(List<Integer> listDevice, int deviceid){
   	int size = listDevice.size();
@@ -117,9 +128,9 @@ class GPSSender {
 	    int deviceid;
 	    String csvFile;
 	    boolean isrunning = true;
-	    public UserInputThread(int deviceid, String csvFile)
+	    public UserInputThread(int device_id, String csvFile)
 	    {
-	        this.deviceid = deviceid;
+	        this.deviceid = device_id;
 	        this.csvFile = csvFile;
 	    }
 	    public void run()
@@ -210,9 +221,9 @@ class GPSSender {
 							DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
 							// Receive data from server
-					    clientSocket.receive(receivePacket);
-					    String modifiedSentence = new String(receivePacket.getData());
-					    System.out.println("FROM SERVER:" + modifiedSentence);
+					    // clientSocket.receive(receivePacket);
+					    // String modifiedSentence = new String(receivePacket.getData());
+					    // System.out.println("FROM SERVER:" + modifiedSentence);
 					    clientSocket.close();
 	        }catch (SocketTimeoutException ex) {
 						System.out.println("Receive timed out!");

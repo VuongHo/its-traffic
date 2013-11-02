@@ -18,6 +18,8 @@ public class GPSLogger {
 		Memcache.getInstance().flushAll();
 		CPU.getInstance(1).start();
 		CPU.getInstance(2).start();
+		CPU.getInstance(3).start();
+		CPU.getInstance(4).start();
 		GPSLogger main = new GPSLogger(PORT);
 		main.startThreads();
 	}
@@ -65,12 +67,12 @@ public class GPSLogger {
 						new_data.insertRawGpsData(gps_data.split(","));
 
 						// Response result to client
-			    	InetAddress IPAddress = receivePacket.getAddress();
-			    	int port = receivePacket.getPort();
-			    	String capitalizedSentence = gps_data.toUpperCase();
-			    	sendData = capitalizedSentence.getBytes();
-			    	DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-			    	serverSocket.send(sendPacket);
+			    	// InetAddress IPAddress = receivePacket.getAddress();
+			    	// int port = receivePacket.getPort();
+			    	// String capitalizedSentence = gps_data.toUpperCase();
+			    	// sendData = capitalizedSentence.getBytes();
+			    	// DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+			    	// serverSocket.send(sendPacket);
 					}
 					catch (SocketTimeoutException ex) {
 						// ex.printStackTrace();
