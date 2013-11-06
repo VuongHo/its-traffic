@@ -17,7 +17,6 @@ public class QueueTask{
 	}
 	public void pushTask(RawData task) {
 		runQueue.offer(task);
-		logger.info("Queue size: "+runQueue.size());
 	}
 	public RawData popTask() {
 		RawData task = runQueue.poll();
@@ -28,5 +27,8 @@ public class QueueTask{
 	}
 	public void removeAll(){
 		runQueue = new ConcurrentLinkedQueue<RawData>();
+	}
+	public int queueSize(){
+		return runQueue.size();
 	}
 }

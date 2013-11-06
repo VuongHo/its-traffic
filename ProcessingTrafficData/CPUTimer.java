@@ -3,17 +3,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-public class Timer implements Runnable{
-	private static Logger logger = Logger.getLogger(Timer.class.getName());
+public class CPUTimer implements Runnable{
+	private static Logger logger = Logger.getLogger(CPUTimer.class.getName());
 
-	public Timer(){
+	public CPUTimer(){
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		executor.scheduleAtFixedRate(this, 0, 1000*5 , TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public void run() {
-		logger.info("Scheduler ticks");
-		Scheduler.getInstance().schedule();
+		logger.info("CPU ticks");
+		Scheduler.getInstance().run();
 	}
 }

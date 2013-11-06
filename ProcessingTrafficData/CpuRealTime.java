@@ -10,38 +10,57 @@ import java.security.NoSuchAlgorithmException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class CPU extends Thread {
-	private static Logger logger = Logger.getLogger(CPU.class.getName());
+public class CpuRealTime implements Runnable {
+	private static Logger logger = Logger.getLogger(CpuRealTime.class.getName());
+	private static CpuRealTime cpu = new CpuRealTime();
+	private Thread thread;
+	private boolean isRunning;
 	private DB db;
-	private DBCollection segmentspeed_co;
-	private	DBCollection segment_cell_co;
 
-	public CPU(){
+	public CpuRealTime(){
 		if(MongoDB.check == false) MongoDB.openConnection();
 		db = MongoDB.db;
-		segmentspeed_co = db.getCollection("segmentspeed");
-		segment_cell_co = db.getCollection("segment_cell_details");
+		thread = new Thread(this);
+	}
+
+	public static CpuRealTime getInstance(){
+		return cpu;
+	}
+
+	public void start(){
+		thread.start();
+		isRunning = true;
 	}
 
 	@Override
 	public void run(){
-		logger.info("CPU starting...");
-		while(!QueueTask.getInstance().isEmpty()){
+		logger.info("CpuRealTime starting...");
+		while(isRunning){
 			try{
-				RawData raw_data = QueueTask.getInstance().popTask();
-				if (raw_data.getFrame() < currentFrame()) continue;
-				else{
-					processingRawData(raw_data);
+				if(QueueTask.getInstance().isEmpty()){
+					try{
+						Thread.sleep(1000);
+					} catch (InterruptedException e){
+						e.printStackTrace();
+					}
+				}else{
+					RawData raw_data = QueueTask.getInstance().popTask();
+					if (raw_data.getFrame() < currentFrame()) continue;
+					else{
+						processingRawData(raw_data);
+					}
 				}
 			}catch(Exception e){
 				logger.info("Some thing went wrong :" );
 				e.printStackTrace();
 			}
 		}
-		logger.info("CPU shutdown...");
+		logger.info("CpuRealTime shutdown...");
 	}
 
 	public void processingRawData(RawData raw_data) throws Exception {
+		DBCollection segmentspeed_co = db.getCollection("segmentspeed");
+		DBCollection segment_cell_co = db.getCollection("segment_cell_details");
 		BasicDBObject query = findSegmentCellQuery(raw_data.getCellX(), raw_data.getCellY());
 		String cell_key     = cellKey(raw_data.getCellX(), raw_data.getCellY());
 		String segment_cell_cached =  (String) Memcache.getInstance().get(cell_key);
@@ -59,50 +78,33 @@ public class CPU extends Thread {
 		for(int i = 0; i < count_sc; i++){
 			JSONObject segment_cell = json_arr_sc.getJSONObject(i);
 			if(raw_data.nodeMatchSegment(segment_cell)){
-				query = findSegmentSpeedQuery(raw_data, segment_cell);
+				query = new BasicDBObject("date", raw_data.getDate()).append("frame", raw_data.getFrame()).
+				    																		append("segment_id", segment_cell.getInt("segment_id")).
+				    																		append("cell_id", segment_cell.getInt("cell_id"));
 	    	DBObject segment_speed = segmentspeed_co.findOne(query);
 
 	    	if(segment_speed != null){
-	    		updateSegmentSpeed(segment_speed, raw_data);
+	    		double old_speed = (double)(segment_speed.get("speed"));
+	    		int sum = (int)(segment_speed.get("sum")) + 1;
+	    		segment_speed.put("speed", (float)((raw_data.getFrame()+old_speed)/sum));
+	    		segment_speed.put("sum", sum);
+	    		segmentspeed_co.save(segment_speed);
 	    		logger.info("----UPDATE----"+QueueTask.getInstance().queueSize()+"----"+ segment_cell.getInt("segment_id") + " " + segment_cell.getInt("cell_id"));
 	    	}else{
-	    		query = insertSegmentSpeedQuery(raw_data, segment_cell);
-					insertSegmentSpeed(query);
+	    		query = new BasicDBObject("segment_id", segment_cell.getInt("segment_id")).
+						    										append("cell_id", segment_cell.getInt("cell_id")).
+						    										append("cell_x", raw_data.getCellX()).
+						    										append("cell_y", raw_data.getCellY()).
+						    										append("street_id", (segment_cell.getJSONObject("street")).getInt("street_id")).
+						    										append("speed", raw_data.getSpeed()).
+						    										append("sum", 1).
+						    										append("date", raw_data.getDate()).
+						    										append("frame", raw_data.getFrame());
+					segmentspeed_co.insert(query);
 					logger.info("----INSERT--------"+ segment_cell.getInt("segment_id") + " " + segment_cell.getInt("cell_id"));
 				}		
 			}
 		}
-	}
-
-	public BasicDBObject insertSegmentSpeedQuery(RawData raw_data, JSONObject segment_cell) throws Exception{
-		return new BasicDBObject("segment_id", segment_cell.getInt("segment_id")).
-						    			append("cell_id", segment_cell.getInt("cell_id")).
-						    			append("cell_x", raw_data.getCellX()).
-						    			append("cell_y", raw_data.getCellY()).
-						    			append("street_id", (segment_cell.getJSONObject("street")).getInt("street_id")).
-						    			append("speed", raw_data.getSpeed()).
-						    			append("sum", 1).
-						    			append("date", raw_data.getDate()).
-						    			append("frame", raw_data.getFrame());
-	}
-
-	public BasicDBObject findSegmentSpeedQuery(RawData raw_data, JSONObject segment_cell) throws Exception{
-		return new BasicDBObject("date", raw_data.getDate()).
-											append("frame", raw_data.getFrame()).
-				    					append("segment_id", segment_cell.getInt("segment_id")).
-				    					append("cell_id", segment_cell.getInt("cell_id"));
-	}
-
-	public void insertSegmentSpeed(BasicDBObject data){
-		segmentspeed_co.insert(data);
-	}
-
-	public void updateSegmentSpeed(DBObject segment_speed, RawData raw_data){
-		double old_speed = (double)(segment_speed.get("speed"));
-		int sum = (int)(segment_speed.get("sum")) + 1;
-		segment_speed.put("speed", (float)((raw_data.getFrame()+old_speed)/sum));
-		segment_speed.put("sum", sum);
-		segmentspeed_co.save(segment_speed);
 	}
 
 	public String cellKey(int cell_x, int cell_y){
