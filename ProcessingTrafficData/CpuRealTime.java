@@ -89,7 +89,8 @@ public class CpuRealTime implements Runnable {
 	    		segment_speed.put("speed", (float)((raw_data.getFrame()+old_speed)/sum));
 	    		segment_speed.put("sum", sum);
 	    		segmentspeed_co.save(segment_speed);
-	    		logger.info("----UPDATE----"+QueueTask.getInstance().queueSize()+"----"+ segment_cell.getInt("segment_id") + " " + segment_cell.getInt("cell_id"));
+	    		String log = "----UPDATE--------"+ segment_cell.getInt("segment_id") + " " + segment_cell.getInt("cell_id");
+					ApplicationLog.getInstance().writeLog(log);
 	    	}else{
 	    		query = new BasicDBObject("segment_id", segment_cell.getInt("segment_id")).
 						    										append("cell_id", segment_cell.getInt("cell_id")).
@@ -101,14 +102,15 @@ public class CpuRealTime implements Runnable {
 						    										append("date", raw_data.getDate()).
 						    										append("frame", raw_data.getFrame());
 					segmentspeed_co.insert(query);
-					logger.info("----INSERT--------"+ segment_cell.getInt("segment_id") + " " + segment_cell.getInt("cell_id"));
+					String log = "----INSERT--------"+ segment_cell.getInt("segment_id") + " " + segment_cell.getInt("cell_id");
+					ApplicationLog.getInstance().writeLog(log);
 				}		
 			}
 		}
 	}
 
 	public String cellKey(int cell_x, int cell_y){
-		return Integer.toString(cell_x) + "v-d" + Integer.toString(cell_y);
+		return Integer.toString(cell_x) + "minhvuong-cell" + Integer.toString(cell_y);
 	}
 
 	public String MD5(String md5) {

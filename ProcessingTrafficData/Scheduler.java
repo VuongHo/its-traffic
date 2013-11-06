@@ -24,7 +24,7 @@ public class Scheduler {
 		DBCollection segmentCellDetailsCo = db.getCollection("segment_cell_details");
 		BasicDBObject query = new BasicDBObject("trktime", new BasicDBObject("$gte", lastSeconds(5)).append("$lt", timeNow())).
 															append("date_time", new BasicDBObject("date", dateTimeCurrent()).append("frame", currentFrame()));
-		DBCursor cursor = gpsDataCo.find(query);												
+		DBCursor cursor = gpsDataCo.find(query);											
 		try {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
@@ -35,8 +35,10 @@ public class Scheduler {
 			logger.info("Some thing went wrong :" );
 			e.printStackTrace();
 		}finally{
-		   cursor.close();
-		   logger.info("has scheduler...");
+		  cursor.close();
+		  logger.info("has scheduler...");
+		  String log = "The number of raw data\'s data: " + QueueTask.getInstance().queueCount() + " :)";
+			ApplicationLog.getInstance().writeLog(log);
 		}
 	}
 
