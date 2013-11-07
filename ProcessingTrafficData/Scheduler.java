@@ -22,14 +22,16 @@ public class Scheduler {
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		DBCollection segmentSpeedCo = db.getCollection("segmentspeed");
 		DBCollection segmentCellDetailsCo = db.getCollection("segment_cell_details");
-		BasicDBObject query = new BasicDBObject("trktime", new BasicDBObject("$gte", lastSeconds(5)).append("$lt", timeNow())).
-															append("date_time", new BasicDBObject("date", dateTimeCurrent()).append("frame", currentFrame()));
+		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("date", dateTimeCurrent()).append("frame", currentFrame())).
+															append("status", false);
 		DBCursor cursor = gpsDataCo.find(query);											
 		try {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
 		  	RawData raw_data 		= new RawData(raw_gps_data);
 		  	QueueTask.getInstance().pushTask(raw_data);
+		  	raw_gps_data.put("status", true);
+				gpsDataCo.save(raw_gps_data);
 		  }
 		}catch(Exception e){
 			logger.info("Some thing went wrong :" );

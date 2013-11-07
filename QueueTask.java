@@ -7,6 +7,7 @@ public class QueueTask{
 	private static QueueTask instance = null;
 	private static int dem1 = 0;
 	private static int dem2 = 0;
+	private static int count = 0;
 	private static Date today = new Date();
 	private Queue<Task> runQueue;
 	protected QueueTask(){
@@ -20,6 +21,7 @@ public class QueueTask{
 	}
 	public void pushTask(Task task) {
 		runQueue.offer(task);
+		count++;
 	}
 	public Task popTask() {
 		Task task = runQueue.poll();
@@ -46,5 +48,9 @@ public class QueueTask{
 
 	public Date getdate(){
 		return today;
+	}
+
+	public int queueCount(){
+		return count;
 	}
 }

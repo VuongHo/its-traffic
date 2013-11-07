@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 public class QueueTask{
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
 	private static QueueTask instance = null;
+	private static int count = 0;
 	private Queue<RawData> runQueue;
 	protected QueueTask(){
 		runQueue = new ConcurrentLinkedQueue<RawData>();
@@ -17,7 +18,7 @@ public class QueueTask{
 	}
 	public void pushTask(RawData task) {
 		runQueue.offer(task);
-		logger.info("Queue size: "+runQueue.size());
+		count++;
 	}
 	public RawData popTask() {
 		RawData task = runQueue.poll();
@@ -28,5 +29,8 @@ public class QueueTask{
 	}
 	public void removeAll(){
 		runQueue = new ConcurrentLinkedQueue<RawData>();
+	}
+	public int queueCount(){
+		return count;
 	}
 }

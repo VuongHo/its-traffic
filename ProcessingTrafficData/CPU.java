@@ -9,7 +9,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.google.gson.GSON;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CPU extends Thread {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
@@ -28,6 +31,7 @@ public class CPU extends Thread {
 
 	@Override
 	public void run(){
+		ApplicationLog.getInstance().writeLog("CPU starting...");
 		logger.info("CPU starting...");
 		while(!QueueTask.getInstance().isEmpty()){
 			try{
@@ -41,6 +45,7 @@ public class CPU extends Thread {
 				e.printStackTrace();
 			}
 		}
+		ApplicationLog.getInstance().writeLog("CPU shutdown...");
 		logger.info("CPU shutdown...");
 	}
 
@@ -56,22 +61,48 @@ public class CPU extends Thread {
 			Memcache.getInstance().add(cell_key, json_sc, expiring_time);
 			segment_cell_cached = json_sc;
 		}else{
-
+			String segment_key = cell_key + "-segment_key";
+			String segment_cached =  (String) Memcache.getInstance().get(segment_key);
+			if(segment_cached != null){
+				ArrayList<Integer> ints = gson.fromJson(segment_cached, new TypeToken<ArrayList<Integer>>(){}.getType());
+				JSONArray json_arr_sc = new JSONArray(segment_cell_cached);
+				for (Integer segment_index : ints) {
+		      JSONObject segment_cell = json_arr_sc.getJSONObject(segment_index);
+		      if(raw_data.nodeMatchSegment(segment_cell)){
+						execSegmentSpeed(segment_cell, raw_data);
+					}
+		    }
+		    return;
+			}
 		}
 
-		execWithSegmentCellCached(segment_cell_cached, raw_data);
-	}
-
-	public void execWithSegmentCellCached(String segment_cell_cached, RawData raw_data) throws Exception{
 		JSONArray json_arr_sc = new JSONArray(segment_cell_cached);
 		int count_sc     			= json_arr_sc.length(); 
 		for(int i = 0; i < count_sc; i++){
 			JSONObject segment_cell = json_arr_sc.getJSONObject(i);
 			if(raw_data.nodeMatchSegment(segment_cell)){
 				// Caching segment
-				String segment_key = cell_key + "-segment_key";
+				cachingSegmentIndexInCell(i, cell_key);
 				execSegmentSpeed(segment_cell, raw_data);	
 			}
+		}
+	}
+
+	public void cachingSegmentIndexInCell(int index, String cell_key){
+		String segment_key = cell_key + "-segment_key";
+		String segment_cached =  (String) Memcache.getInstance().get(segment_key);
+		if(segment_cached == null){
+			List<Integer> ints = new ArrayList<Integer>();
+			ints.add(index);
+			String segment_index = gson.toJson(ints);
+			Date expiring_time = Memcache.getInstance().expiringTime(1);
+			Memcache.getInstance().add(segment_key, segment_index, expiring_time);
+		}else{
+			ArrayList<Integer> ints = gson.fromJson(segment_cached, new TypeToken<ArrayList<Integer>>(){}.getType());
+			ints.add(index);
+			String segment_index = gson.toJson(ints);
+			Date expiring_time = Memcache.getInstance().expiringTime(1);
+			Memcache.getInstance().add(segment_key, segment_index, expiring_time);
 		}
 	}
 
@@ -120,6 +151,10 @@ public class CPU extends Thread {
 		segment_speed.put("speed", (float)((raw_data.getFrame()+old_speed)/sum));
 		segment_speed.put("sum", sum);
 		segmentspeed_co.save(segment_speed);
+	}
+
+	public void updateGpsRawData(){
+		
 	}
 
 	public String cellKey(int cell_x, int cell_y){

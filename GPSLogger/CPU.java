@@ -31,7 +31,7 @@ public class CPU implements Runnable {
 		while(isRunning){
 			if(QueueTask.getInstance().isEmpty()){
 				try{
-					logger.info("idle");
+					logger.info("----QUEUE---"+QueueTask.getInstance().queueCount());
 					Thread.sleep(1000);
 				} catch (InterruptedException e){
 					e.printStackTrace();
@@ -48,7 +48,8 @@ public class CPU implements Runnable {
 																			append("satellite", raw_data.getSatellite()).
 																			append("lock", raw_data.getLock()).
 																			append("trktime", raw_data.getTrktime()).
-																			append("date_time", new BasicDBObject("date", raw_data.getDate()).append("frame", raw_data.getFrame()));
+																			append("date_time", new BasicDBObject("date", raw_data.getDate()).append("frame", raw_data.getFrame())).
+																			append("status", false);
 				    gpsData.insert(doc);
 			    }catch(Exception e){
 						logger.info("Some thing went wrong with mongo!");
