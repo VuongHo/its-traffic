@@ -60,20 +60,6 @@ public class CPU extends Thread {
 			Date expiring_time = Memcache.getInstance().expiringTime(15);
 			Memcache.getInstance().add(cell_key, json_sc, expiring_time);
 			segment_cell_cached = json_sc;
-		}else{
-			String segment_key = cell_key + "-segment_key";
-			String segment_cached =  (String) Memcache.getInstance().get(segment_key);
-			if(segment_cached != null){
-				ArrayList<Integer> ints = gson.fromJson(segment_cached, new TypeToken<ArrayList<Integer>>(){}.getType());
-				JSONArray json_arr_sc = new JSONArray(segment_cell_cached);
-				for (Integer segment_index : ints) {
-		      JSONObject segment_cell = json_arr_sc.getJSONObject(segment_index);
-		      if(raw_data.nodeMatchSegment(segment_cell)){
-						execSegmentSpeed(segment_cell, raw_data);
-					}
-		    }
-		    return;
-			}
 		}
 
 		JSONArray json_arr_sc = new JSONArray(segment_cell_cached);
@@ -81,28 +67,8 @@ public class CPU extends Thread {
 		for(int i = 0; i < count_sc; i++){
 			JSONObject segment_cell = json_arr_sc.getJSONObject(i);
 			if(raw_data.nodeMatchSegment(segment_cell)){
-				// Caching segment
-				cachingSegmentIndexInCell(i, cell_key);
 				execSegmentSpeed(segment_cell, raw_data);	
 			}
-		}
-	}
-
-	public void cachingSegmentIndexInCell(int index, String cell_key){
-		String segment_key = cell_key + "-segment_key";
-		String segment_cached =  (String) Memcache.getInstance().get(segment_key);
-		if(segment_cached == null){
-			List<Integer> ints = new ArrayList<Integer>();
-			ints.add(index);
-			String segment_index = gson.toJson(ints);
-			Date expiring_time = Memcache.getInstance().expiringTime(1);
-			Memcache.getInstance().add(segment_key, segment_index, expiring_time);
-		}else{
-			ArrayList<Integer> ints = gson.fromJson(segment_cached, new TypeToken<ArrayList<Integer>>(){}.getType());
-			ints.add(index);
-			String segment_index = gson.toJson(ints);
-			Date expiring_time = Memcache.getInstance().expiringTime(1);
-			Memcache.getInstance().add(segment_key, segment_index, expiring_time);
 		}
 	}
 
