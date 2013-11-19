@@ -34,14 +34,18 @@ public class RawData{
 		this.frame = (int)((DBObject) raw_gps_data.get("date_time")).get("frame");
 	}
 
-	public boolean nodeMatchSegment(JSONObject segment) throws Exception{
-		
+	public boolean nodeMatchSegment(SegmentCell segment){
 		float width;
-		String street_type = (segment.getJSONObject("street")).getString("street_type");
-		Double node_lat_s = (segment.getJSONObject("node_s")).getDouble("node_lat"); // Ay
-		Double node_lon_s = (segment.getJSONObject("node_s")).getDouble("node_lon");
-		Double node_lat_e = (segment.getJSONObject("node_e")).getDouble("node_lat"); // By
-		Double node_lon_e = (segment.getJSONObject("node_e")).getDouble("node_lon");
+		String street_type = segment.getStreetType();
+		Double node_lat_s = segment.getSNodeLat(); // Ay
+		Double node_lon_s = segment.getSNodeLon();
+		Double node_lat_e = segment.getENodeLat(); // By
+		Double node_lon_e = segment.getENodeLon();
+
+		if(!((node_lat_s >= (this.latitude - 0.00015) && node_lon_s >= (this.longitude - 0.00015) &&
+				  node_lat_e <= (this.latitude + 0.00015) && node_lon_e <= (this.longitude + 0.00015)   ) || 
+				 (node_lat_s <= (this.latitude + 0.00015) && node_lon_s <= (this.longitude + 0.00015) &&
+				  node_lat_e >= (this.latitude - 0.00015) && node_lon_e >= (this.longitude - 0.00015)   ))) return false;
 		
 		switch (street_type){
 			case "primary":
