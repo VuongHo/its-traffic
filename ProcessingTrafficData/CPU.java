@@ -17,38 +17,57 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class CPU extends Thread {
+public class CPU implements Runnable {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
+	private static CPU cpu = new CPU();
+	private Thread thread;
+	private boolean isRunning;
 	private DB db;
 	private DBCollection segmentspeed_co;
 	private	DBCollection segment_cell_co;
 	private Gson gson;
+
+	public static CPU getInstance(){
+		return cpu;
+	}
+
+	public void start(){
+		thread.start();
+		isRunning = true;
+	}
 
 	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
 		db = MongoDB.db;
 		segmentspeed_co = db.getCollection("segmentspeed");
 		segment_cell_co = db.getCollection("segment_cell_details");
-		gson = new Gson();
+		thread = new Thread(this);
 	}
 
 	@Override
 	public void run(){
-		ApplicationLog.getInstance().writeLog("CPU starting...");
 		logger.info("CPU starting...");
-		while(!QueueTask.getInstance().isEmpty()){
+		while(isRunning){
 			try{
-				RawData raw_data = QueueTask.getInstance().popTask();
-				if (raw_data.getFrame() < currentFrame()) continue;
-				else{
-					processingRawData(raw_data);
+				if(QueueTask.getInstance().isEmpty()){
+					try{
+						logger.info("CPU idle...");
+						Thread.sleep(1000);
+					} catch (InterruptedException e){
+						e.printStackTrace();
+					}
+				}else{
+					RawData raw_data = QueueTask.getInstance().popTask();
+					if (raw_data.getFrame() < currentFrame()) continue;
+					else{
+						processingRawData(raw_data);
+					}
 				}
 			}catch(Exception e){
 				logger.info("Some thing went wrong :" );
 				e.printStackTrace();
 			}
 		}
-		ApplicationLog.getInstance().writeLog("CPU shutdown...");
 		logger.info("CPU shutdown...");
 	}
 
@@ -65,9 +84,9 @@ public class CPU extends Thread {
 
 		if(segment_cell_cached == null){			
 			DBCursor cursor = segment_cell_co.find(query);
+			SegmentCell segment;
 			while(cursor.hasNext()) {
-				BasicDBObject segment_cell = (BasicDBObject) cursor.next();
-				SegmentCell segment = new SegmentCell(segment_cell);
+				segment = new SegmentCell((BasicDBObject) cursor.next());
 				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeed(segment, raw_data);
 
 				// TODO

@@ -44,11 +44,6 @@ public class Scheduler {
 		}
 	}
 
-	public void run(){
-		CPU cpu = new CPU();
-		cpu.start();
-	}
-
 	public String dateTimeCurrent(){
 		SimpleDateFormat dateformat = new SimpleDateFormat ("yyyy-MM-dd");
 		return dateformat.format(timeNow());
