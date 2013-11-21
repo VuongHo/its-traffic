@@ -55,7 +55,8 @@ public class GPSLogger {
 						logger.info("RECEIVE: " + gps_data + " size: " + receivePacket.getLength() + " bytes" + " - " + receivePacket.getAddress());
 
 						// Save data
-						QueueTask.getInstance().pushTask(new RawData(gps_data.split(",")));
+						String[] raw_data = gps_data.split(",");
+						if (raw_data.length == 6) QueueTask.getInstance().pushTask(new RawData(raw_data));
 
 						// Response result to client
 			    	// InetAddress IPAddress = receivePacket.getAddress();
