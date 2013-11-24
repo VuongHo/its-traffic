@@ -39,8 +39,12 @@ public class Scheduler {
 		}finally{
 		  cursor.close();
 		  // logger.info("has scheduler...");
-		  String log = "The number of raw data\'s data: " + QueueTask.getInstance().queueCount() + " :)";
-			ApplicationLog.getInstance().writeLog(log);
+		  if (QueueTask.getInstance().queueCount() > 0){
+		  	String log = "The number of raw data\'s data: " + QueueTask.getInstance().queueCount() + " :)";
+				ApplicationLog.getInstance().writeLog(log);
+		  }
+		  // String log = "The number of raw data\'s data: " + QueueTask.getInstance().queueCount() + " :)";
+			// ApplicationLog.getInstance().writeLog(log);
 		}
 	}
 
