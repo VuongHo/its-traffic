@@ -51,7 +51,7 @@ public class CPU implements Runnable {
 			try{
 				if(QueueTask.getInstance().isEmpty()){
 					try{
-						logger.info("CPU idle...");
+						// logger.info("CPU idle...");
 						Thread.sleep(1000);
 					} catch (InterruptedException e){
 						e.printStackTrace();

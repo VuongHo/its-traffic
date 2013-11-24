@@ -38,7 +38,7 @@ public class Scheduler {
 			e.printStackTrace();
 		}finally{
 		  cursor.close();
-		  logger.info("has scheduler...");
+		  // logger.info("has scheduler...");
 		  String log = "The number of raw data\'s data: " + QueueTask.getInstance().queueCount() + " :)";
 			ApplicationLog.getInstance().writeLog(log);
 		}

@@ -13,7 +13,7 @@ public class Timer implements Runnable{
 
 	@Override
 	public void run() {
-		logger.info("Scheduler ticks");
+		// logger.info("Scheduler ticks");
 		Scheduler.getInstance().schedule();
 	}
 }
