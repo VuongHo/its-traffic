@@ -8,12 +8,12 @@ public class Timer implements Runnable{
 
 	public Timer(){
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		executor.scheduleAtFixedRate(this, 0, 1000*1 , TimeUnit.MILLISECONDS);
+		executor.scheduleAtFixedRate(this, 0, 1000*60*5 , TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public void run() {
-		// logger.info("Scheduler ticks");
+		logger.info("Scheduler ticks");
 		Scheduler.getInstance().schedule();
 	}
 }

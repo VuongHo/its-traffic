@@ -8,7 +8,7 @@ public class CPUTimer implements Runnable{
 
 	public CPUTimer(){
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		executor.scheduleAtFixedRate(this, 0, 1000*1 , TimeUnit.MILLISECONDS);
+		executor.scheduleAtFixedRate(this, 0, 1000*60*1 , TimeUnit.MILLISECONDS);
 	}
 
 	@Override

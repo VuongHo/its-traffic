@@ -8,7 +8,9 @@ public class RawData{
 	private Double latitude;
 	private Double longitude;
 	private Double speed;
+	private Double reliability;
 	private int satellite;
+	private int type;
 	private int lock;
 	private String date;
 	private int frame;
@@ -28,10 +30,12 @@ public class RawData{
 		this.latitude = (Double) raw_gps_data.get("latitude");
 		this.longitude = (Double) raw_gps_data.get("longitude");
 		this.speed = (Double) raw_gps_data.get("speed");
+		this.reliability = (Double) raw_gps_data.get("reliability");
 		this.satellite = (int) raw_gps_data.get("satellite");
+		this.type = (int) raw_gps_data.get("type");
 		this.lock = (int) raw_gps_data.get("lock");
-		this.date = (String)((DBObject) raw_gps_data.get("date_time")).get("date");
-		this.frame = (int)((DBObject) raw_gps_data.get("date_time")).get("frame");
+		this.date = (String)((DBObject) raw_gps_data.get("date_key")).get("date");
+		this.frame = (int)((DBObject) raw_gps_data.get("date_key")).get("frame");
 	}
 
 	public boolean nodeMatchSegment(SegmentCell segment){
