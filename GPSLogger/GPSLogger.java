@@ -56,7 +56,7 @@ public class GPSLogger {
 
 						// Save data
 						String[] raw_data = gps_data.split(",");
-						if (raw_data.length == 6) QueueTask.getInstance().pushTask(new RawData(raw_data));
+						if (raw_data.length == 9) QueueTask.getInstance().pushTask(new RawData(raw_data));
 
 						// Response result to client
 			    	// InetAddress IPAddress = receivePacket.getAddress();
