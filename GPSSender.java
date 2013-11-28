@@ -9,10 +9,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 class GPSSender {
-	// private static String LOCAL_BROADCAST_ADDRESS = "172.28.10.96";
-	// private static int PORT = 170;
-	private static String LOCAL_BROADCAST_ADDRESS = "127.0.0.1";
-	private static int PORT = 9876;
+	private static String LOCAL_BROADCAST_ADDRESS = "traffic.hcmut.edu.vn";
+	private static int PORT = 180;
+	// private static String LOCAL_BROADCAST_ADDRESS = "127.0.0.1";
+	// private static int PORT = 9876;
 	private boolean isRunning = true;
 
 	public static void main(String args[]){
@@ -34,7 +34,7 @@ class GPSSender {
 	 	SimpleDateFormat timeformat = new SimpleDateFormat ("HH:mm:ss");
 	 	int dem = 0;
 	 	Calendar later = Calendar.getInstance();
-   	later.add(Calendar.SECOND, 1);
+   	later.add(Calendar.SECOND, 30);
    	Date laterTime = later.getTime();
 		try {
 			while(true){
@@ -52,8 +52,10 @@ class GPSSender {
 					Date today = new Date();
 					String time=timeformat.format(today);
 					String current_time = values[6].substring(11, 19);
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					
-		 			String message = device_id + "," + latPos + "," + longPos + "," + speed + ",0.0,0,1,1," + values[6];
+
+		 			String message = device_id + "," + latPos + "," + longPos + "," + speed + ",0.0,0,1,1," + dateFormat.format(new Date());
 		 			UDPSender sender = new UDPSender(PORT, message);
           sender.start();
 

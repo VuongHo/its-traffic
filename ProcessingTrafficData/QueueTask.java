@@ -6,7 +6,7 @@ public class QueueTask{
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
 	private static QueueTask instance = null;
 	private Queue<RawData> runQueue;
-	private int count = 0;
+	private long count = 0;
 
 	protected QueueTask(){
 		runQueue = new ConcurrentLinkedQueue<RawData>();
