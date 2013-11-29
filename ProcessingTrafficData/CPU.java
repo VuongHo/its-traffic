@@ -46,6 +46,7 @@ public class CPU extends Thread {
 				e.printStackTrace();
 			}
 		}
+		execSegmentSpeed();
 		logger.info("CPU shutdown...");
 	}
 
@@ -65,7 +66,7 @@ public class CPU extends Thread {
 			SegmentCell segment;
 			while(cursor.hasNext()) {
 				segment = new SegmentCell((BasicDBObject) cursor.next());
-				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeed(segment, raw_data);
+				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data);
 
 				// TODO
 				int seg_cx = (int) ((segment.getSNodeLat() - cell0_lat)/0.001);
@@ -103,7 +104,7 @@ public class CPU extends Thread {
 				List<SegmentCell> segs = seg_cached.get(seg_key);
 				if (segs != null){
 					for(SegmentCell segment : segs){
-						if(raw_data.nodeMatchSegment(segment)) execSegmentSpeed(segment, raw_data);
+						if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data);
 					}
 				}
 			}
@@ -128,54 +129,43 @@ public class CPU extends Thread {
 			int sum = seg_speed.getSum() + 1;
 			seg_speed.setSpeed((speed+raw_data.getSpeed())/sum);
 			seg_speed.setSum(sum);
+			seg_speeds.remove(seg_speed_key);
+			seg_speeds.put(seg_speed_key, seg_speed);
 		}
 	}
 
-	// public void execSegmentSpeed(SegmentCell segment, RawData raw_data){
-	// 	BasicDBObject query = findSegmentSpeedQuery(raw_data, segment);
- //  	DBObject segment_speed = segmentspeed_co.findOne(query);
+	public void execSegmentSpeed(){
+		for(String key : seg_speeds.keySet()){
+			SegmentSpeed seg_speed = seg_speeds.get(key);
+			BasicDBObject query = new BasicDBObject("date", seg_speed.getDate()).
+																			 append("frame", seg_speed.getFrame()).
+												    					 append("segment_id", seg_speed.getSegmentId()).
+												    					 append("cell_id", seg_speed.getCellId());
+			DBObject segment_speed = segmentspeed_co.findOne(query);
+			if(segment_speed != null){
+				int sum = (int)(segment_speed.get("sum")) + 1;
+				segment_speed.put("speed", seg_speed.getSpeed());
+				segment_speed.put("sum", sum);
+				segmentspeed_co.save(segment_speed);
 
- //  	if(segment_speed != null){
- //  		updateSegmentSpeed(segment_speed, raw_data);
- //  		String log = "----UPDATE--------"+ segment.getSegmentId() + " " + segment.getCellId();
- //  		ApplicationLog.getInstance().writeLog(log);
- //  	}else{
- //  		query = insertSegmentSpeedQuery(raw_data, segment);
-	// 		insertSegmentSpeed(query);
-	// 		String log = "----INSERT--------"+ segment.getSegmentId() + " " + segment.getCellId();
-	// 		ApplicationLog.getInstance().writeLog(log);
-	// 	}
-	// }
-
-	public BasicDBObject insertSegmentSpeedQuery(RawData raw_data, SegmentCell segment){
-		return new BasicDBObject("segment_id", segment.getSegmentId()).
-						    			append("cell_id", segment.getCellId()).
-						    			append("cell_x", raw_data.getCellX()).
-						    			append("cell_y", raw_data.getCellY()).
-						    			append("street_id", segment.getStreetId()).
-						    			append("speed", raw_data.getSpeed()).
-						    			append("sum", 1).
-						    			append("date", raw_data.getDate()).
-						    			append("frame", raw_data.getFrame());
-	}
-
-	public BasicDBObject findSegmentSpeedQuery(RawData raw_data, SegmentCell segment){
-		return new BasicDBObject("date", raw_data.getDate()).
-											append("frame", raw_data.getFrame()).
-				    					append("segment_id", segment.getSegmentId()).
-				    					append("cell_id", segment.getCellId());
-	}
-
-	public void insertSegmentSpeed(BasicDBObject data){
-		segmentspeed_co.insert(data);
-	}
-
-	public void updateSegmentSpeed(DBObject segment_speed, RawData raw_data){
-		double old_speed = (double)(segment_speed.get("speed"));
-		int sum = (int)(segment_speed.get("sum")) + 1;
-		segment_speed.put("speed", (float)((raw_data.getFrame()+old_speed)/sum));
-		segment_speed.put("sum", sum);
-		segmentspeed_co.save(segment_speed);
+	  		String log = "----UPDATE--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId();
+	  		ApplicationLog.getInstance().writeLog(log);
+	  	}else{
+	  		query = new BasicDBObject("segment_id", seg_speed.getSegmentId()).
+								    			append("cell_id", seg_speed.getCellId()).
+								    			append("cell_x", seg_speed.getCellX()).
+								    			append("cell_y", seg_speed.getCellY()).
+								    			append("street_id", seg_speed.getStreetId()).
+								    			append("speed", seg_speed.getSpeed()).
+								    			append("sum", 1).
+								    			append("date", seg_speed.getDate()).
+								    			append("frame", seg_speed.getFrame());
+				segmentspeed_co.insert(query);
+				
+				String log = "----INSERT--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId();
+				ApplicationLog.getInstance().writeLog(log);
+			}
+		}
 	}
 
 	public String cellKey(int cell_x, int cell_y){

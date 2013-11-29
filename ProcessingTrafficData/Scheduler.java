@@ -23,7 +23,7 @@ public class Scheduler {
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		DBCollection segmentSpeedCo = db.getCollection("segmentspeed");
 		DBCollection segmentCellDetailsCo = db.getCollection("segment_cell_details");
-		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("$gte", lastMinutes(5)).append("$lt", timeNow())).
+		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
 															append("date_key", new BasicDBObject("date", dateTimeCurrent()).append("frame", currentFrame()));
 		DBCursor cursor = gpsDataCo.find(query);											
 		try {
@@ -39,7 +39,7 @@ public class Scheduler {
 			CPU cpu = new CPU(queue_task);
 			cpu.start();
 		  cursor.close();
-		  logger.info("scheduler done...");
+		  logger.info("scheduler done..." + queue_task.queueCount());
 		  String log = "The number of raw data\'s data: " + queue_task.queueCount() + " :)";
 			ApplicationLog.getInstance().writeLog(log);
 		}
