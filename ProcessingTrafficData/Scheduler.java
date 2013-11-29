@@ -19,6 +19,7 @@ public class Scheduler {
 	}
 	
 	public void schedule(){
+		QueueTask queue_task = new QueueTask();
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		DBCollection segmentSpeedCo = db.getCollection("segmentspeed");
 		DBCollection segmentCellDetailsCo = db.getCollection("segment_cell_details");
@@ -29,15 +30,17 @@ public class Scheduler {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
 		  	RawData raw_data 		= new RawData(raw_gps_data);
-		  	QueueTask.getInstance().pushTask(raw_data);
+		  	queue_task.pushTask(raw_data);
 		  }
 		}catch(Exception e){
 			logger.info("Some thing went wrong :" );
 			e.printStackTrace();
 		}finally{
+			CPU cpu = new CPU(queue_task);
+			cpu.start();
 		  cursor.close();
 		  logger.info("scheduler done...");
-		  String log = "The number of raw data\'s data: " + QueueTask.getInstance().queueCount() + " :)";
+		  String log = "The number of raw data\'s data: " + queue_task.queueCount() + " :)";
 			ApplicationLog.getInstance().writeLog(log);
 		}
 	}

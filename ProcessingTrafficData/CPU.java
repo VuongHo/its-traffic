@@ -17,52 +17,30 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class CPU implements Runnable {
+public class CPU extends Thread {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
-	private static CPU cpu = new CPU();
-	private Thread thread;
-	private boolean isRunning;
 	private DB db;
 	private DBCollection segmentspeed_co;
 	private	DBCollection segment_cell_co;
 	private Gson gson;
+	private QueueTask queue_task;
+	private HashMap<String, SegmentSpeed> seg_speeds = new HashMap<>();
 
-	public static CPU getInstance(){
-		return cpu;
-	}
-
-	public void start(){
-		thread.start();
-		isRunning = true;
-	}
-
-	public CPU(){
+	public CPU(QueueTask queue_task){
 		if(MongoDB.check == false) MongoDB.openConnection();
 		db = MongoDB.db;
 		segmentspeed_co = db.getCollection("segmentspeed");
 		segment_cell_co = db.getCollection("segment_cell_details");
-		thread = new Thread(this);
+		this.queue_task = queue_task;
 	}
 
 	@Override
 	public void run(){
 		logger.info("CPU starting...");
-		while(isRunning){
+		while(!queue_task.isEmpty()){
 			try{
-				if(QueueTask.getInstance().isEmpty()){
-					try{
-						// logger.info("CPU idle...");
-						Thread.sleep(1000);
-					} catch (InterruptedException e){
-						e.printStackTrace();
-					}
-				}else{
-					RawData raw_data = QueueTask.getInstance().popTask();
-					if (raw_data.getFrame() < currentFrame()) continue;
-					else{
-						processingRawData(raw_data);
-					}
-				}
+				RawData raw_data = queue_task.popTask();
+				processingRawData(raw_data);
 			}catch(Exception e){
 				logger.info("Some thing went wrong :" );
 				e.printStackTrace();
@@ -132,21 +110,42 @@ public class CPU implements Runnable {
 		}
 	}
 
-	public void execSegmentSpeed(SegmentCell segment, RawData raw_data){
-		BasicDBObject query = findSegmentSpeedQuery(raw_data, segment);
-  	DBObject segment_speed = segmentspeed_co.findOne(query);
-
-  	if(segment_speed != null){
-  		updateSegmentSpeed(segment_speed, raw_data);
-  		String log = "----UPDATE--------"+ segment.getSegmentId() + " " + segment.getCellId();
-  		ApplicationLog.getInstance().writeLog(log);
-  	}else{
-  		query = insertSegmentSpeedQuery(raw_data, segment);
-			insertSegmentSpeed(query);
-			String log = "----INSERT--------"+ segment.getSegmentId() + " " + segment.getCellId();
-			ApplicationLog.getInstance().writeLog(log);
+	public void execSegmentSpeedNoDB(SegmentCell segment, RawData raw_data){
+		String seg_speed_key = raw_data.getDate() + Integer.toString(raw_data.getFrame()) + Integer.toString(segment.getSegmentId()) + Integer.toString(segment.getCellId());
+		SegmentSpeed seg_speed = seg_speeds.get(seg_speed_key);
+		if(seg_speed == null){
+			seg_speed = new SegmentSpeed(segment.getSegmentId(),
+																	 segment.getCellId(),
+																	 raw_data.getCellX(),
+																	 raw_data.getCellY(),
+																	 segment.getStreetId(),
+																	 raw_data.getSpeed(),
+																	 raw_data.getDate(),
+																	 raw_data.getFrame());
+			seg_speeds.put(seg_speed_key,seg_speed);
+		}else{
+			double speed = seg_speed.getSpeed();
+			int sum = seg_speed.getSum() + 1;
+			seg_speed.setSpeed((speed+raw_data.getSpeed())/sum);
+			seg_speed.setSum(sum);
 		}
 	}
+
+	// public void execSegmentSpeed(SegmentCell segment, RawData raw_data){
+	// 	BasicDBObject query = findSegmentSpeedQuery(raw_data, segment);
+ //  	DBObject segment_speed = segmentspeed_co.findOne(query);
+
+ //  	if(segment_speed != null){
+ //  		updateSegmentSpeed(segment_speed, raw_data);
+ //  		String log = "----UPDATE--------"+ segment.getSegmentId() + " " + segment.getCellId();
+ //  		ApplicationLog.getInstance().writeLog(log);
+ //  	}else{
+ //  		query = insertSegmentSpeedQuery(raw_data, segment);
+	// 		insertSegmentSpeed(query);
+	// 		String log = "----INSERT--------"+ segment.getSegmentId() + " " + segment.getCellId();
+	// 		ApplicationLog.getInstance().writeLog(log);
+	// 	}
+	// }
 
 	public BasicDBObject insertSegmentSpeedQuery(RawData raw_data, SegmentCell segment){
 		return new BasicDBObject("segment_id", segment.getSegmentId()).

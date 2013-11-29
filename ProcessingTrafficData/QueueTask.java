@@ -1,22 +1,12 @@
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Logger;
 
 public class QueueTask{
-	private static Logger logger = Logger.getLogger(CPU.class.getName());
-	private static QueueTask instance = null;
 	private Queue<RawData> runQueue;
 	private long count = 0;
 
 	protected QueueTask(){
 		runQueue = new ConcurrentLinkedQueue<RawData>();
-	}
-	
-	public static QueueTask getInstance(){
-		if(instance == null){
-			instance = new QueueTask();
-		}
-		return instance;
 	}
 
 	public void pushTask(RawData task) {
@@ -37,7 +27,7 @@ public class QueueTask{
 		runQueue = new ConcurrentLinkedQueue<RawData>();
 	}
 
-	public int queueCount(){
+	public long queueCount(){
 		return count;
 	}
 }
