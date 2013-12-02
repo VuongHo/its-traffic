@@ -149,7 +149,6 @@ public class CPU extends Thread {
 				segmentspeed_co.save(segment_speed);
 
 	  		logger.info("----UPDATE--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
-	  		ApplicationLog.getInstance().writeLog(log);
 	  	}else{
 	  		query = new BasicDBObject("segment_id", seg_speed.getSegmentId()).
 								    			append("cell_id", seg_speed.getCellId()).
