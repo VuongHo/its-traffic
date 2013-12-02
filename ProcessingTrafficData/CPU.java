@@ -148,7 +148,7 @@ public class CPU extends Thread {
 				segment_speed.put("sum", sum);
 				segmentspeed_co.save(segment_speed);
 
-	  		String log = "----UPDATE--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId();
+	  		logger.info("----UPDATE--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
 	  		ApplicationLog.getInstance().writeLog(log);
 	  	}else{
 	  		query = new BasicDBObject("segment_id", seg_speed.getSegmentId()).
@@ -162,8 +162,7 @@ public class CPU extends Thread {
 								    			append("frame", seg_speed.getFrame());
 				segmentspeed_co.insert(query);
 				
-				String log = "----INSERT--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId();
-				ApplicationLog.getInstance().writeLog(log);
+				logger.info("----INSERT--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
 			}
 		}
 	}

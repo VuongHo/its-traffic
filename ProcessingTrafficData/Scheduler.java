@@ -40,8 +40,6 @@ public class Scheduler {
 			cpu.start();
 		  cursor.close();
 		  logger.info("scheduler done..." + queue_task.queueCount());
-		  String log = "The number of raw data\'s data: " + queue_task.queueCount() + " :)";
-			ApplicationLog.getInstance().writeLog(log);
 		}
 	}
 
