@@ -24,7 +24,7 @@ public class Scheduler {
 		DBCollection segmentSpeedCo = db.getCollection("segmentspeed");
 		DBCollection segmentCellDetailsCo = db.getCollection("segment_cell_details");
 		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
-															append("date_key", new BasicDBObject("date", dateTimeCurrent()).append("frame", currentFrame()));
+															append("lock", 1);
 		DBCursor cursor = gpsDataCo.find(query);											
 		try {
 		  while(cursor.hasNext()) {
