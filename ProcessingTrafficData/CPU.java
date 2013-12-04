@@ -40,7 +40,7 @@ public class CPU extends Thread {
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
 															append("lock", 1);
-		DBCursor cursor = gpsDataCo.find(query);											
+		DBCursor cursor = gpsDataCo.find(query).limit(1000);											
 		try {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
@@ -62,59 +62,26 @@ public class CPU extends Thread {
 		BasicDBObject query = findSegmentCellQuery(raw_data.getCellX(), raw_data.getCellY());
 		String cell_key     = cellKey(raw_data.getCellX(), raw_data.getCellY());
 		String segment_cell_cached =  (String) Memcache.getInstance().get(cell_key);
-		Double cell0_lat = 10.609309 + raw_data.getCellX()*0.01;
-		Double cell0_lon = 106.493811 + raw_data.getCellY()*0.01;
-		HashMap<String, List<SegmentCell>> seg_cached = new HashMap<>();
+		
 		GsonBuilder builder = new GsonBuilder();
 		Gson gson = builder.enableComplexMapKeySerialization().setPrettyPrinting().create();
-		Type type = new TypeToken<HashMap<String,List<SegmentCell>>>(){}.getType();
+		Type type = new TypeToken<ArrayList<SegmentCell>>(){}.getType();
 
-		if(segment_cell_cached == null){			
+		if(segment_cell_cached == null){
+			ArrayList<SegmentCell> seg_cacheds = new ArrayList<>();			
 			DBCursor cursor = segment_cell_co.find(query);
-			SegmentCell segment;
 			while(cursor.hasNext()) {
-				segment = new SegmentCell((BasicDBObject) cursor.next());
+				SegmentCell segment = new SegmentCell((BasicDBObject) cursor.next());
 				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data);
-
-				// TODO
-				int seg_cx = (int) ((segment.getSNodeLat() - cell0_lat)/0.001);
-				int seg_cy = (int) ((segment.getSNodeLon() - cell0_lon)/0.001);
-				if (seg_cx < 0 || seg_cy < 0 ){
-					seg_cx = (int) ((segment.getENodeLat() - cell0_lat)/0.001);
-					seg_cy = (int) ((segment.getENodeLon() - cell0_lon)/0.001);
-				}
-
-				if(seg_cx >= 0 && seg_cy >= 0 ){
-					String seg_key = seg_cx + "minhvuong-seg" + seg_cy;
-					List<SegmentCell> segs = seg_cached.get(seg_key);
-					if (segs == null){
-						ArrayList<SegmentCell> new_segs = new ArrayList<>();
-						new_segs.add(segment);
-						seg_cached.put(seg_key,new_segs);
-					}else{
-						segs.add(segment);
-						seg_cached.remove(seg_key);
-						seg_cached.put(seg_key, segs);
-					}
-
-				}
+				seg_cacheds.add(segment);
  			}
-    	String json = gson.toJson(seg_cached, type);
+    	String json = gson.toJson(seg_cacheds, type);
     	Date expiring_time = Memcache.getInstance().expiringTime(15);
 			Memcache.getInstance().add(cell_key, json, expiring_time);
 		}else{
-			seg_cached = gson.fromJson(segment_cell_cached, type);
-			// TODO
-			int seg_cx = (int) ((raw_data.getLatitude() - cell0_lat)/0.001);
-			int seg_cy = (int) ((raw_data.getLongitude() - cell0_lon)/0.001);
-			if (seg_cx >= 0 && seg_cy >= 0 ){
-				String seg_key = seg_cx + "minhvuong-seg" + seg_cy;
-				List<SegmentCell> segs = seg_cached.get(seg_key);
-				if (segs != null){
-					for(SegmentCell segment : segs){
-						if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data);
-					}
-				}
+			ArrayList<SegmentCell> seg_cacheds = gson.fromJson(segment_cell_cached, type);
+			for(SegmentCell segment : seg_cacheds){
+				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data);
 			}
 		}
 	}
@@ -156,7 +123,7 @@ public class CPU extends Thread {
 				segment_speed.put("sum", sum);
 				segmentspeed_co.save(segment_speed);
 
-	  		logger.info("----UPDATE--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
+	  		// logger.info("----UPDATE--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
 	  	}else{
 	  		query = new BasicDBObject("segment_id", seg_speed.getSegmentId()).
 								    			append("cell_id", seg_speed.getCellId()).
@@ -169,7 +136,7 @@ public class CPU extends Thread {
 								    			append("frame", seg_speed.getFrame());
 				segmentspeed_co.insert(query);
 				
-				logger.info("----INSERT--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
+				// logger.info("----INSERT--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
 			}
 		}
 	}
