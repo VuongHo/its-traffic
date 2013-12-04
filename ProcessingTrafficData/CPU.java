@@ -23,31 +23,39 @@ public class CPU extends Thread {
 	private DBCollection segmentspeed_co;
 	private	DBCollection segment_cell_co;
 	private Gson gson;
-	private QueueTask queue_task;
 	private HashMap<String, SegmentSpeed> seg_speeds = new HashMap<>();
 
-	public CPU(QueueTask queue_task){
+	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
 		db = MongoDB.db;
 		segmentspeed_co = db.getCollection("segmentspeed");
 		segment_cell_co = db.getCollection("segment_cell_details");
-		this.queue_task = queue_task;
 	}
 
 	@Override
 	public void run(){
 		logger.info("CPU starting...");
-		while(!queue_task.isEmpty()){
-			try{
-				RawData raw_data = queue_task.popTask();
-				processingRawData(raw_data);
-			}catch(Exception e){
-				logger.info("Some thing went wrong :" );
-				e.printStackTrace();
-			}
-		}
-		execSegmentSpeed();
-		logger.info("CPU shutdown...");
+		int numOfgps = 0;
+
+		DBCollection gpsDataCo = db.getCollection("gps_data");
+		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
+															append("lock", 1);
+		DBCursor cursor = gpsDataCo.find(query);											
+		try {
+		  while(cursor.hasNext()) {
+		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
+		  	processingRawData(new RawData(raw_gps_data));
+
+		  	numOfgps++;
+		  }
+		}catch(Exception e){
+			logger.info("Some thing went wrong :" );
+			e.printStackTrace();
+		}finally{
+			cursor.close();
+			execSegmentSpeed();
+			logger.info("CPU shutdown... " + numOfgps);
+		}		
 	}
 
 	public void processingRawData(RawData raw_data) throws Exception {
@@ -194,5 +202,22 @@ public class CPU extends Thread {
 
 	public Date timeNow(){
 		return new Date();
+	}
+
+	public String dateTimeCurrent(){
+		SimpleDateFormat dateformat = new SimpleDateFormat ("yyyy-MM-dd");
+		return dateformat.format(timeNow());
+	}
+
+	public Date lastMinutes(int minutes){
+		Calendar later = Calendar.getInstance();
+   	later.add(Calendar.MINUTE, -minutes);
+   	return later.getTime();
+	}
+
+	public Date lastSeconds(int seconds){
+		Calendar later = Calendar.getInstance();
+   	later.add(Calendar.SECOND, -seconds);
+   	return later.getTime();
 	}
 }
