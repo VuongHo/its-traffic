@@ -40,7 +40,7 @@ public class CPU extends Thread {
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
 															append("lock", 1);
-		DBCursor cursor = gpsDataCo.find(query).limit(1000);											
+		DBCursor cursor = gpsDataCo.find(query).limit(500);											
 		try {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
@@ -160,7 +160,14 @@ public class CPU extends Thread {
 	}
 
 	public BasicDBObject findSegmentCellQuery(int cell_x, int cell_y){
-		BasicDBObject query = new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y);
+		ArrayList<BasicDBObject> cond = new ArrayList<BasicDBObject>();
+		cond.add(new BasicDBObject("street.street_type", "motorway"));
+		cond.add(new BasicDBObject("street.street_type", "motorway_link"));
+		cond.add(new BasicDBObject("street.street_type", "trunk"));
+		cond.add(new BasicDBObject("street.street_type", "trunk_link"));
+		cond.add(new BasicDBObject("street.street_type", "primary"));
+		cond.add(new BasicDBObject("street.street_type", "primary_link"));
+		BasicDBObject query = new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y).append("$or", cond);
 		return query;
 	}
 	public int currentFrame(){
