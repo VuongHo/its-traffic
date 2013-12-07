@@ -55,7 +55,7 @@ public class CPU extends Thread {
 			e.printStackTrace();
 		}finally{
 			cursor.close();
-			execSegmentSpeed();
+			if(init_frame == currentFrame()) execSegmentSpeed();
 			logger.info("CPU shutdown... " + numOfgps);
 		}		
 	}
