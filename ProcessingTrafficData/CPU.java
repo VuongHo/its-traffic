@@ -37,15 +37,16 @@ public class CPU extends Thread {
 	public void run(){
 		logger.info("CPU starting...");
 		int numOfgps = 0;
-
+		int init_frame = currentFrame();
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(5)))).
 																		 append("lock", 1);
 		DBCursor cursor = gpsDataCo.find(query);										
 		try {
 		  while(cursor.hasNext()) {
+		  	if(init_frame < currentFrame()) break;
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
-		  	processingRawData(new RawData(raw_gps_data));
+		  	processingRawData(new RawData(raw_gps_data), init_frame);
 
 		  	numOfgps++;
 		  }
@@ -59,7 +60,7 @@ public class CPU extends Thread {
 		}		
 	}
 
-	public void processingRawData(RawData raw_data) throws Exception {
+	public void processingRawData(RawData raw_data, int current_frame) throws Exception {
 		BasicDBObject query = findSegmentCellQuery(raw_data.getCellX(), raw_data.getCellY());
 		String cell_key     = cellKey(raw_data.getCellX(), raw_data.getCellY());
 		String segment_cell_cached =  (String) Memcache.getInstance().get(cell_key);
@@ -73,7 +74,7 @@ public class CPU extends Thread {
 			DBCursor cursor = segment_cell_co.find(query);
 			while(cursor.hasNext()) {
 				SegmentCell segment = new SegmentCell((BasicDBObject) cursor.next());
-				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data);
+				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data, current_frame);
 				seg_cacheds.add(segment);
  			}
     	String json = gson.toJson(seg_cacheds, type);
@@ -82,12 +83,12 @@ public class CPU extends Thread {
 		}else{
 			ArrayList<SegmentCell> seg_cacheds = gson.fromJson(segment_cell_cached, type);
 			for(SegmentCell segment : seg_cacheds){
-				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data);
+				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data, current_frame);
 			}
 		}
 	}
 
-	public void execSegmentSpeedNoDB(SegmentCell segment, RawData raw_data){
+	public void execSegmentSpeedNoDB(SegmentCell segment, RawData raw_data, int current_frame){
 		String seg_speed_key = raw_data.getDate() + Integer.toString(raw_data.getFrame()) + Integer.toString(segment.getSegmentId()) + Integer.toString(segment.getCellId());
 		SegmentSpeed seg_speed = seg_speeds.get(seg_speed_key);
 		if(seg_speed == null){
@@ -98,7 +99,7 @@ public class CPU extends Thread {
 																	 segment.getStreetId(),
 																	 raw_data.getSpeed(),
 																	 raw_data.getDate(),
-																	 raw_data.getFrame());
+																	 current_frame);
 			seg_speeds.put(seg_speed_key,seg_speed);
 		}else{
 			double speed = seg_speed.getSpeed();
