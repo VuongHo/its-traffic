@@ -38,8 +38,9 @@ public class CPU extends Thread {
 		int numOfgps = 0;
 
 		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
-															append("lock", 1);
+		BasicDBObject query = new BasicDBObject("date_key", new BasicDBObject("date", dateTimeCurrent()).append("frame", currentFrame())).
+																		 append("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
+																		 append("lock", 1);
 		DBCursor cursor = gpsDataCo.find(query).limit(500);											
 		try {
 		  while(cursor.hasNext()) {
