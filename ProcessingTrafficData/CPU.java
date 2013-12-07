@@ -39,9 +39,9 @@ public class CPU extends Thread {
 		int numOfgps = 0;
 
 		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(1)))).
+		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(5)))).
 																		 append("lock", 1);
-		DBCursor cursor = gpsDataCo.find(query).limit(500);											
+		DBCursor cursor = gpsDataCo.find(query);										
 		try {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
@@ -103,10 +103,12 @@ public class CPU extends Thread {
 		}else{
 			double speed = seg_speed.getSpeed();
 			int sum = seg_speed.getSum() + 1;
-			seg_speed.setSpeed((speed+raw_data.getSpeed())/sum);
-			seg_speed.setSum(sum);
-			seg_speeds.remove(seg_speed_key);
-			seg_speeds.put(seg_speed_key, seg_speed);
+			if (sum <= 30){
+				seg_speed.setSpeed((speed+raw_data.getSpeed())/sum);
+				seg_speed.setSum(sum);
+				seg_speeds.remove(seg_speed_key);
+				seg_speeds.put(seg_speed_key, seg_speed);
+			}
 		}
 	}
 
