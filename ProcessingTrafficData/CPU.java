@@ -1,5 +1,6 @@
 import com.mongodb.*;
 import com.mongodb.util.JSON;
+import org.bson.types.ObjectId;
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
 import java.util.Date;
@@ -38,8 +39,7 @@ public class CPU extends Thread {
 		int numOfgps = 0;
 
 		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("date_key", new BasicDBObject("date", dateTimeCurrent()).append("frame", currentFrame())).
-																		 append("date_time", new BasicDBObject("$gte", lastMinutes(1)).append("$lt", timeNow())).
+		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(1)))).
 																		 append("lock", 1);
 		DBCursor cursor = gpsDataCo.find(query).limit(500);											
 		try {
