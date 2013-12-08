@@ -1,21 +1,32 @@
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class QueueTask{
-	private Queue<RawData> runQueue;
+	private Queue<HashMap<String, SegmentSpeed>> runQueue;
+	private static QueueTask instance = null;
 	private long count = 0;
 
 	protected QueueTask(){
-		runQueue = new ConcurrentLinkedQueue<RawData>();
+		runQueue = new ConcurrentLinkedQueue<HashMap<String, SegmentSpeed>>();
 	}
 
-	public void pushTask(RawData task) {
+	public static QueueTask getInstance(){
+		if(instance == null){
+			instance = new QueueTask();
+		}
+		return instance;
+	}
+
+	public void pushTask(HashMap<String, SegmentSpeed> task) {
 		runQueue.offer(task);
 		count++;
 	}
 
-	public RawData popTask() {
-		RawData task = runQueue.poll();
+	public HashMap<String, SegmentSpeed> popTask() {
+		HashMap<String, SegmentSpeed> task = runQueue.poll();
+		count--;
 		return task;
 	}
 
@@ -24,7 +35,7 @@ public class QueueTask{
 	}
 
 	public void removeAll(){
-		runQueue = new ConcurrentLinkedQueue<RawData>();
+		runQueue = new ConcurrentLinkedQueue<HashMap<String, SegmentSpeed>>();
 	}
 
 	public long queueCount(){

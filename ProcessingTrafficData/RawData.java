@@ -140,4 +140,8 @@ public class RawData{
 	public int getCellY(){
 		return (int) (Math.abs(this.longitude-ROOT_LONGITUDE)/0.01);
 	}
+
+	public String getKey(){
+		return ""+this.device_id+""+this.longitude+""+this.latitude;
+	}
 }

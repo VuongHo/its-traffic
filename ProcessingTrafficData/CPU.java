@@ -25,6 +25,7 @@ public class CPU extends Thread {
 	private	DBCollection segment_cell_co;
 	private Gson gson;
 	private HashMap<String, SegmentSpeed> seg_speeds = new HashMap<>();
+	private HashMap<String, ArrayList<SegmentCell>> seg_cells;
 
 	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
@@ -38,6 +39,9 @@ public class CPU extends Thread {
 		logger.info("CPU starting...");
 		int numOfgps = 0;
 		int init_frame = currentFrame();
+		Boolean check = false;
+		seg_cells = GpsSegmentData.getInstance().getSegmentCells();
+		if(!seg_cells.isEmpty()) check = true; 
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(5)))).
 																		 append("lock", 1);
@@ -46,7 +50,18 @@ public class CPU extends Thread {
 		  while(cursor.hasNext()) {
 		  	if(init_frame < currentFrame()) break;
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
-		  	processingRawData(new RawData(raw_gps_data), init_frame);
+		  	RawData raw_data = new RawData(raw_gps_data);
+
+		  	if(check){
+		  		ArrayList<SegmentCell> segment_cells = seg_cells.get(raw_data.getKey());
+		  		if(segment_cells != null){
+						execSegmentSpeedNoDB(segment_cells.get(0), raw_data, init_frame);
+			  	}else{
+			  		processingRawData(raw_data, init_frame);
+			  	}
+		  	}else{
+		  		processingRawData(raw_data, init_frame);
+		  	}	  	
 
 		  	numOfgps++;
 		  }
@@ -55,9 +70,27 @@ public class CPU extends Thread {
 			e.printStackTrace();
 		}finally{
 			cursor.close();
-			if(init_frame == currentFrame()) execSegmentSpeed();
+			if(GpsSegmentData.getInstance().getDateTime().compareTo(timeNow()) <= 0 ){
+				GpsSegmentData.getInstance().setSegmentCells(seg_cells);
+				GpsSegmentData.getInstance().setDateTime(timeNow());
+			}
+			// QueueTask.getInstance().pushTask(seg_speeds);
+			// logger.info("----- "+QueueTask.getInstance().queueCount());
+			if(init_frame == currentFrame()) QueueTask.getInstance().pushTask(seg_speeds);
 			logger.info("CPU shutdown... " + numOfgps);
 		}		
+	}
+
+	public void addSegmentCell(String key, SegmentCell segment){
+		ArrayList<SegmentCell> segment_cells = seg_cells.get(key);
+		if(segment_cells == null){
+			segment_cells = new ArrayList<>();
+			segment_cells.add(segment);
+		}else{
+			seg_cells.remove(key);
+			segment_cells.add(segment);
+		}
+		seg_cells.put(key,segment_cells);
 	}
 
 	public void processingRawData(RawData raw_data, int current_frame) throws Exception {
@@ -111,6 +144,7 @@ public class CPU extends Thread {
 				seg_speeds.put(seg_speed_key, seg_speed);
 			}
 		}
+		addSegmentCell(raw_data.getKey(),segment);
 	}
 
 	public void execSegmentSpeed(){
