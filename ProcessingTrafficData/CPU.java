@@ -26,6 +26,7 @@ public class CPU extends Thread {
 	private Gson gson;
 	private HashMap<String, SegmentSpeed> seg_speeds = new HashMap<>();
 	private HashMap<String, ArrayList<SegmentCell>> seg_cells;
+	private int tnum = 0;
 
 	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
@@ -77,7 +78,7 @@ public class CPU extends Thread {
 			// QueueTask.getInstance().pushTask(seg_speeds);
 			// logger.info("----- "+QueueTask.getInstance().queueCount());
 			if(init_frame == currentFrame()) QueueTask.getInstance().pushTask(seg_speeds);
-			logger.info("CPU shutdown... " + numOfgps);
+			logger.info("CPU shutdown... " + numOfgps + " & "+tnum);
 		}		
 	}
 
@@ -107,7 +108,10 @@ public class CPU extends Thread {
 			DBCursor cursor = segment_cell_co.find(query);
 			while(cursor.hasNext()) {
 				SegmentCell segment = new SegmentCell((BasicDBObject) cursor.next());
-				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data, current_frame);
+				if(raw_data.nodeMatchSegment(segment)){
+					execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					tnum++;
+				} 
 				seg_cacheds.add(segment);
  			}
     	String json = gson.toJson(seg_cacheds, type);
@@ -116,7 +120,10 @@ public class CPU extends Thread {
 		}else{
 			ArrayList<SegmentCell> seg_cacheds = gson.fromJson(segment_cell_cached, type);
 			for(SegmentCell segment : seg_cacheds){
-				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data, current_frame);
+				if(raw_data.nodeMatchSegment(segment)){
+					execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					tnum++;
+				} 
 			}
 		}
 	}
