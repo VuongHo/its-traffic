@@ -39,12 +39,12 @@ public class CPU extends Thread {
 	public void run(){
 		logger.info("CPU starting...");
 		int numOfgps = 0;
-		int init_frame = currentFrame();
+		int init_frame = nextFrame(nextMinutes(1));// currentFrame();
 		Boolean check = false;
 		seg_cells = GpsSegmentData.getInstance().getSegmentCells();
 		if(!seg_cells.isEmpty()) check = true; 
 		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(5)))).
+		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(15)))).
 																		 append("lock", 1);
 		DBCursor cursor = gpsDataCo.find(query);										
 		try {
@@ -212,6 +212,8 @@ public class CPU extends Thread {
 		cond.add(new BasicDBObject("street.street_type", "trunk_link"));
 		cond.add(new BasicDBObject("street.street_type", "primary"));
 		cond.add(new BasicDBObject("street.street_type", "primary_link"));
+		cond.add(new BasicDBObject("street.street_type", "secondary"));
+		cond.add(new BasicDBObject("street.street_type", "secondary_link"));
 		BasicDBObject query = new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y).append("$or", cond);
 		return query;
 	}
@@ -226,6 +228,16 @@ public class CPU extends Thread {
 	public String dateTimeCurrent(){
 		SimpleDateFormat dateformat = new SimpleDateFormat ("yyyy-MM-dd");
 		return dateformat.format(timeNow());
+	}
+
+	public int nextFrame(Date time){
+		return (time.getHours())*4 + (int)((time.getMinutes())/15);
+	}
+
+	public Date nextMinutes(int minutes){
+		Calendar later = Calendar.getInstance();
+   	later.add(Calendar.MINUTE, minutes);
+   	return later.getTime();
 	}
 
 	public Date lastMinutes(int minutes){
