@@ -17,6 +17,8 @@ public class RawData{
 
 	private double ROOT_LATITUDE = 10.609309;
 	private double ROOT_LONGITUDE = 106.493811;
+	private double DISTANCE_MIN = 111200.00;
+	private double DISTANCE_CELL = 0.01;
 
 	private int PRIMARY_WAY = 0;
 	private int SECONDARY_WAY = 1;
@@ -39,45 +41,45 @@ public class RawData{
 	}
 
 	public boolean nodeMatchSegment(SegmentCell segment){
-		float width;
+		double width;
 		String street_type = segment.getStreetType();
 		Double node_lat_s = segment.getSNodeLat(); // Ay
 		Double node_lon_s = segment.getSNodeLon();
 		Double node_lat_e = segment.getENodeLat(); // By
 		Double node_lon_e = segment.getENodeLon();
 
-		if(!((node_lat_s >= (this.latitude - 0.00015) && node_lon_s >= (this.longitude - 0.00015) &&
-				  node_lat_e <= (this.latitude + 0.00015) && node_lon_e <= (this.longitude + 0.00015)   ) || 
-				 (node_lat_s <= (this.latitude + 0.00015) && node_lon_s <= (this.longitude + 0.00015) &&
-				  node_lat_e >= (this.latitude - 0.00015) && node_lon_e >= (this.longitude - 0.00015)   ))) return false;
+		// if(!((node_lat_s >= (this.latitude - 0.00015) && node_lon_s >= (this.longitude - 0.00015) &&
+				  // node_lat_e <= (this.latitude + 0.00015) && node_lon_e <= (this.longitude + 0.00015)   ) || 
+				 // (node_lat_s <= (this.latitude + 0.00015) && node_lon_s <= (this.longitude + 0.00015) &&
+				  // node_lat_e >= (this.latitude - 0.00015) && node_lon_e >= (this.longitude - 0.00015)   ))) return false;
 		
 		switch (street_type){
 			case "primary":
-				width = width_of[PRIMARY_WAY]/110000;
+				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
 				break;
 			case "secondary":
-				width = width_of[SECONDARY_WAY]/110000;
+				width = width_of[SECONDARY_WAY]/DISTANCE_MIN;
 				break;
 			case "tertiary":
-				width = width_of[TERTIARY]/110000;
+				width = width_of[TERTIARY]/DISTANCE_MIN;
 				break;
 			case "motorway":
-				width = width_of[PRIMARY_WAY]/110000;
+				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
 				break;
 			case "motorway_link":
-				width = width_of[PRIMARY_WAY]/110000;
+				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
 				break;
 			case "trunk":
-				width = width_of[PRIMARY_WAY]/110000;
+				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
 				break;
 			case "trunk_link":
-				width = width_of[PRIMARY_WAY]/110000;
+				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
 				break;
 			case "primary_link":
-				width = width_of[PRIMARY_WAY]/110000;
+				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
 				break;
 			default:
-				width = width_of[OTHER_WAY]/110000;
+				width = width_of[OTHER_WAY]/DISTANCE_MIN;
 		}
 		// AB
 		Double a1 = -(node_lat_s - node_lat_e);
@@ -94,7 +96,7 @@ public class RawData{
 
 		Double d_node_AB = Math.abs(longitude*a1 + latitude*b1 + c1)/Math.sqrt(Math.pow(a1,2)+Math.pow(b1,2));
 
-		if (d_node_AB > width/2) return false;
+		if (Double.compare(d_node_AB, width/2) > 0) return false;
 
 		if ((longitude*a2 + latitude*b2 + c2)*(longitude*a4 + latitude*b4 + c4) > 0) return false;
 
@@ -134,11 +136,11 @@ public class RawData{
 	}
 
 	public int getCellX(){
-		return (int) (Math.abs(this.latitude-ROOT_LATITUDE )/0.01);
+		return (int) (Math.abs(this.latitude-ROOT_LATITUDE )/DISTANCE_CELL);
 	}
 
 	public int getCellY(){
-		return (int) (Math.abs(this.longitude-ROOT_LONGITUDE)/0.01);
+		return (int) (Math.abs(this.longitude-ROOT_LONGITUDE)/DISTANCE_CELL);
 	}
 
 	public String getKey(){
