@@ -39,7 +39,7 @@ public class CPU extends Thread {
 	public void run(){
 		logger.info("CPU starting...");
 		int numOfgps = 0;
-		int init_frame = nextFrame(nextMinutes(1));// currentFrame();
+		int init_frame = nextFrame(nextMinutes(2));// currentFrame();
 		Boolean check = false;
 		seg_cells = GpsSegmentData.getInstance().getSegmentCells();
 		if(!seg_cells.isEmpty()) check = true; 
@@ -144,12 +144,12 @@ public class CPU extends Thread {
 		}else{
 			double speed = seg_speed.getSpeed();
 			int sum = seg_speed.getSum() + 1;
-			if (sum <= 30){
+			// if (sum <= 30){
 				seg_speed.setSpeed((speed+raw_data.getSpeed())/sum);
 				seg_speed.setSum(sum);
 				seg_speeds.remove(seg_speed_key);
 				seg_speeds.put(seg_speed_key, seg_speed);
-			}
+			// }
 		}
 		addSegmentCell(raw_data.getKey(),segment);
 	}

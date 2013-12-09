@@ -17,7 +17,7 @@ public class RawData{
 
 	private double ROOT_LATITUDE = 10.609309;
 	private double ROOT_LONGITUDE = 106.493811;
-	private double DISTANCE_MIN = 111200.00;
+	private double DISTANCE_MIN = 110000.00;
 	private double DISTANCE_CELL = 0.01;
 
 	private int PRIMARY_WAY = 0;

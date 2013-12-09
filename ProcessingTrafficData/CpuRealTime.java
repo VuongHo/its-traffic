@@ -69,9 +69,8 @@ public class CpuRealTime implements Runnable {
 												    					 append("cell_id", seg_speed.getCellId());
 			DBObject segment_speed = segmentspeed_co.findOne(query);
 			if(segment_speed != null){
-				int sum = (int)(segment_speed.get("sum")) + 1;
 				segment_speed.put("speed", seg_speed.getSpeed());
-				segment_speed.put("sum", sum);
+				segment_speed.put("sum", seg_speed.getSum());
 				segmentspeed_co.save(segment_speed);
 
 	  		// logger.info("----UPDATE--------"+ seg_speed.getSegmentId() + " " + seg_speed.getCellId());
@@ -82,7 +81,7 @@ public class CpuRealTime implements Runnable {
 								    			append("cell_y", seg_speed.getCellY()).
 								    			append("street_id", seg_speed.getStreetId()).
 								    			append("speed", seg_speed.getSpeed()).
-								    			append("sum", 1).
+								    			append("sum", seg_speed.getSum()).
 								    			append("date", seg_speed.getDate()).
 								    			append("frame", seg_speed.getFrame());
 				segmentspeed_co.insert(query);
