@@ -20,7 +20,7 @@ public class SegmentSpeed {
 		this.speed = speed;
 		this.date = date;
 		this.frame = frame;
-		this.sum = 0;
+		this.sum = 1;
 	}
 
 	public int getSum(){

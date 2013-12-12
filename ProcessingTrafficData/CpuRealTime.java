@@ -63,6 +63,7 @@ public class CpuRealTime implements Runnable {
 	public void execSegmentSpeed(HashMap<String, SegmentSpeed> seg_speeds){
 		for(String key : seg_speeds.keySet()){
 			SegmentSpeed seg_speed = seg_speeds.get(key);
+			// if(Double.compare(seg_speed.getSpeed(),0.00) == 0) continue;
 			BasicDBObject query = new BasicDBObject("date", seg_speed.getDate()).
 																			 append("frame", seg_speed.getFrame()).
 												    					 append("segment_id", seg_speed.getSegmentId()).

@@ -42,6 +42,7 @@ public class RawData{
 
 	public boolean nodeMatchSegment(SegmentCell segment){
 		double width;
+		double anpha = 0.0;
 		String street_type = segment.getStreetType();
 		Double node_lat_s = segment.getSNodeLat(); // Ay
 		Double node_lon_s = segment.getSNodeLon();
@@ -52,34 +53,34 @@ public class RawData{
 				  // node_lat_e <= (this.latitude + 0.00015) && node_lon_e <= (this.longitude + 0.00015)   ) || 
 				 // (node_lat_s <= (this.latitude + 0.00015) && node_lon_s <= (this.longitude + 0.00015) &&
 				  // node_lat_e >= (this.latitude - 0.00015) && node_lon_e >= (this.longitude - 0.00015)   ))) return false;
-		
+		if(this.type == 1 || this.type == 2) anpha = 5.0;
 		switch (street_type){
 			case "primary":
-				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
 				break;
 			case "secondary":
-				width = width_of[SECONDARY_WAY]/DISTANCE_MIN;
+				width = (width_of[SECONDARY_WAY]+anpha)/DISTANCE_MIN;
 				break;
 			case "tertiary":
-				width = width_of[TERTIARY]/DISTANCE_MIN;
+				width = (width_of[TERTIARY]+anpha)/DISTANCE_MIN;
 				break;
 			case "motorway":
-				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
 				break;
 			case "motorway_link":
-				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
 				break;
 			case "trunk":
-				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
 				break;
 			case "trunk_link":
-				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
 				break;
 			case "primary_link":
-				width = width_of[PRIMARY_WAY]/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
 				break;
 			default:
-				width = width_of[OTHER_WAY]/DISTANCE_MIN;
+				width = (width_of[OTHER_WAY]+anpha)/DISTANCE_MIN;
 		}
 		// AB
 		Double a1 = -(node_lat_s - node_lat_e);

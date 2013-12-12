@@ -8,7 +8,7 @@ public class Timer implements Runnable{
 
 	public Timer(){
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		executor.scheduleAtFixedRate(this, 0, 1000*30 , TimeUnit.MILLISECONDS);
+		executor.scheduleAtFixedRate(this, 0, 1000*60 , TimeUnit.MILLISECONDS);
 	}
 
 	@Override
