@@ -18,68 +18,82 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class CPU extends Thread {
+public class CPU implements Runnable {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
+	private static CPU cpu = new CPU();
+	private Thread thread;
 	private DB db;
 	private DBCollection segmentspeed_co;
 	private	DBCollection segment_cell_co;
 	private Gson gson;
-	private HashMap<String, SegmentSpeed> seg_speeds = new HashMap<>();
+	private HashMap<String, SegmentSpeed> seg_speeds;
 	private HashMap<String, ArrayList<SegmentCell>> seg_cells;
-	private int tnum = 0;
+	private int tnum;
+	private boolean isRunning;
 
 	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
 		db = MongoDB.db;
 		segmentspeed_co = db.getCollection("segmentspeed");
 		segment_cell_co = db.getCollection("segment_cell_details");
+		thread = new Thread(this);
+	}
+
+	public static CPU getInstance(){
+		return cpu;
+	}
+
+	public void start(){
+		thread.start();
+		isRunning = true;
 	}
 
 	@Override
 	public void run(){
 		logger.info("CPU starting...");
-		int numOfgps = 0;
-		int init_frame = nextFrame(nextMinutes(2));// currentFrame();
-		Boolean check = false;
-		seg_cells = GpsSegmentData.getInstance().getSegmentCells();
-		if(!seg_cells.isEmpty()) check = true; 
-		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(15)))).
-																		 append("lock", 1);
-		DBCursor cursor = gpsDataCo.find(query);										
-		try {
-		  while(cursor.hasNext()) {
-		  	if(init_frame < currentFrame()) break;
-		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
-		  	RawData raw_data = new RawData(raw_gps_data);
+		while(isRunning){
+			try{
+				if(QueueRawData.getInstance().isEmpty()){
+					try{
+						// logger.info("die--");
+						Thread.sleep(1000);
+					} catch (InterruptedException e){
+						e.printStackTrace();
+					}
+				}else{
+					ArrayList<RawData> data = QueueRawData.getInstance().popTask();
+					seg_speeds = new HashMap<>();
+					tnum = 0;
+					int numOfgps = 0;
+					int init_frame = nextFrame(nextMinutes(2));// currentFrame();
+					Boolean check = false;
+					seg_cells = GpsSegmentData.getInstance().getSegmentCells();
+					if(!seg_cells.isEmpty()) check = true; 
+					for(RawData raw_data : data){
+						if(init_frame < currentFrame()) break;
+						if(check){
+				  		ArrayList<SegmentCell> segment_cells = seg_cells.get(raw_data.getKey());
+				  		if(segment_cells != null){
+								execSegmentSpeedNoDB(segment_cells.get(0), raw_data, init_frame);
+					  	}else{
+					  		processingRawData(raw_data, init_frame);
+					  	}
+				  	}else{
+				  		processingRawData(raw_data, init_frame);
+				  	}	  	
 
-		  	if(check){
-		  		ArrayList<SegmentCell> segment_cells = seg_cells.get(raw_data.getKey());
-		  		if(segment_cells != null){
-						execSegmentSpeedNoDB(segment_cells.get(0), raw_data, init_frame);
-			  	}else{
-			  		processingRawData(raw_data, init_frame);
-			  	}
-		  	}else{
-		  		processingRawData(raw_data, init_frame);
-		  	}	  	
+				  	numOfgps++;
+					}
+					GpsSegmentData.getInstance().setSegmentCells(seg_cells);
 
-		  	numOfgps++;
-		  }
-		}catch(Exception e){
-			logger.info("Some thing went wrong :" );
-			e.printStackTrace();
-		}finally{
-			cursor.close();
-			if(GpsSegmentData.getInstance().getDateTime().compareTo(timeNow()) <= 0 ){
-				GpsSegmentData.getInstance().setSegmentCells(seg_cells);
-				GpsSegmentData.getInstance().setDateTime(timeNow());
+					if(init_frame == currentFrame() && seg_speeds.size() > 0) QueueTask.getInstance().pushTask(seg_speeds);
+					logger.info("TASK shutdown... " + numOfgps + " & "+tnum+" & "+QueueRawData.getInstance().size());
+				}
+			}catch(Exception e){
+				logger.info("Some thing went wrong :" );
+				e.printStackTrace();
 			}
-			// QueueTask.getInstance().pushTask(seg_speeds);
-			// logger.info("----- "+QueueTask.getInstance().queueCount());
-			if(init_frame == currentFrame()) QueueTask.getInstance().pushTask(seg_speeds);
-			logger.info("CPU shutdown... " + numOfgps + " & "+tnum);
-		}		
+		}
 	}
 
 	public void addSegmentCell(String key, SegmentCell segment){

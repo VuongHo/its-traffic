@@ -14,7 +14,10 @@ public class Timer implements Runnable{
 	@Override
 	public void run() {
 		logger.info("Scheduler ticks");
-		CPU cpu = new CPU();
-		cpu.start();
+		Scheduler.getInstance().schedule();
+		
+		// CPU cpu = new CPU();
+		// cpu.start();
+
 	}
 }
