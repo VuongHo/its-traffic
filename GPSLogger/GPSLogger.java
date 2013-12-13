@@ -4,10 +4,10 @@ import java.util.logging.Logger;
 
 public class GPSLogger {
 	private static Logger logger = Logger.getLogger(CPU.class.getName());
-	// private static String LOCAL_BROADCAST_ADDRESS = "203.162.44.52";
-	// private static int PORT = 180;
-	private static String LOCAL_BROADCAST_ADDRESS = "127.0.0.1";
-	private static int PORT = 9876;
+	private static String LOCAL_BROADCAST_ADDRESS = "203.162.44.52";
+	private static int PORT = 180;
+	// private static String LOCAL_BROADCAST_ADDRESS = "127.0.0.1";
+	// private static int PORT = 9876;
 	private UDPListener udpListener;
 
 	public static void main(String args[]){
