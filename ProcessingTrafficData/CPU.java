@@ -63,16 +63,15 @@ public class CPU implements Runnable {
 				}else{
 					ArrayList<RawData> data = QueueRawData.getInstance().popTask();
 					seg_speeds = new HashMap<>();
+					seg_cells = new HashMap<>();
 					tnum = 0;
 					int numOfgps = 0;
 					int init_frame = nextFrame(nextMinutes(2));// currentFrame();
-					Boolean check = false;
-					seg_cells = GpsSegmentData.getInstance().getSegmentCells();
-					if(!seg_cells.isEmpty()) check = true; 
+					HashMap<String, ArrayList<SegmentCell>> seg_cells_tmp = GpsSegmentData.getInstance().getSegmentCells();
 					for(RawData raw_data : data){
 						if(init_frame < currentFrame()) break;
-						if(check){
-				  		ArrayList<SegmentCell> segment_cells = seg_cells.get(raw_data.getKey());
+						if(!seg_cells_tmp.isEmpty()){
+				  		ArrayList<SegmentCell> segment_cells = seg_cells_tmp.get(raw_data.getKey());
 				  		if(segment_cells != null){
 								execSegmentSpeedNoDB(segment_cells.get(0), raw_data, init_frame);
 					  	}else{

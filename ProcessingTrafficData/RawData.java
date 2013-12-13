@@ -25,7 +25,7 @@ public class RawData{
 	private int TERTIARY = 2;
 	private int OTHER_WAY = 3;
 
-	private float[] width_of = new float[]{15,10,10,10};
+	private double[] width_of = new double[]{15.0,10.0,10.0,10.0};
 
 	public RawData(BasicDBObject raw_gps_data){
 		this.device_id = (String) raw_gps_data.get("device_id");
