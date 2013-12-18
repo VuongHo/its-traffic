@@ -5,6 +5,11 @@ import java.util.Calendar;
 import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Iterator;
 
 public class Scheduler {
 	private static Logger logger = Logger.getLogger(Scheduler.class.getName());
@@ -27,10 +32,59 @@ public class Scheduler {
 		DBCursor cursor = gpsDataCo.find(query);											
 		try {
 			ArrayList<RawData> data = new ArrayList<>();
+			HashMap<String, ArrayList<RawData>> devices = new HashMap<>();;
+
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
-		  	data.add(new RawData(raw_gps_data));
+		  	RawData raw_data = new RawData(raw_gps_data);
+		  	data.add(raw_data);
+		  	devices = putRawDataToHash(devices, raw_data);
 		  }
+		  
+		  for(String key : devices.keySet()){
+				ArrayList<RawData> virtual_data = devices.get(key);
+				if(virtual_data.size() < 2) continue;
+				Collections.sort(virtual_data, new Comparator<RawData>() {
+		        @Override
+		        public int compare(RawData raw_data_1, RawData  raw_data_2)
+		        {
+		        		if(raw_data_1.getDateTime() > raw_data_2.getDateTime()) return 1;
+		        		if(raw_data_1.getDateTime() < raw_data_2.getDateTime()) return -1;
+		        		if(raw_data_1.getDateTime() == raw_data_2.getDateTime()) return 0;
+		            return  0;
+		        }
+		    });
+		    Iterator itr = virtual_data.iterator();
+				while(itr.hasNext()){
+					RawData vd1 = (RawData) itr.next();
+					if(itr.hasNext()){
+						RawData vd2 = (RawData) itr.next();
+						int time = (int)((vd2.getDateTime() - vd1.getDateTime())/1000);
+						Double distance = distanceBetweenTwoNode(vd1, vd2);
+						Double vilocity = distance/time;
+						if(time >= 20 && time <= 40)logger.info("TEST distance:"+distanceBetweenTwoNode(vd1, vd2));
+						if(time >= 20 && time <= 40 && distance.compareTo(50.0) > 0){
+
+							double min_x = Math.abs(vd1.getLatitude() - vd2.getLatitude())/6;
+							double min_y = Math.abs(vd1.getLongitude() - vd2.getLongitude())/6;
+							for(int i = 1; i < 6; i++){
+								RawData v_data = new RawData(vd1.getDeviceId(),
+																						 vd1.getLatitude() + min_x*i,
+																						 vd1.getLongitude() + min_y*i,
+																						 vilocity*3.6,
+																						 vd1.getReliability(),
+																						 vd1.getSatellite(),
+																						 vd1.getType(),
+																						 vd1.getLock(),
+																						 vd1.getDate(),
+																						 vd1.getFrame(),
+																						 new Date(vd1.getDateTime() + ((int)(time/6))*i*1000));
+								data.add(v_data);
+							}
+						}
+					}
+				}
+			}
 		  if(data.size() > 0) QueueRawData.getInstance().pushTask(data);
 		}catch(Exception e){
 			logger.info("Some thing went wrong :" );
@@ -40,12 +94,28 @@ public class Scheduler {
 		}
 	}
 
+	public Double distanceBetweenTwoNode(RawData d1, RawData d2){
+		return Math.sqrt(Math.pow(d1.getLatitude() - d2.getLatitude(), 2) + Math.pow(d1.getLongitude() - d2.getLongitude(), 2))*110000.00;
+	}
+
+	public HashMap<String, ArrayList<RawData>> putRawDataToHash(HashMap<String, ArrayList<RawData>> devices, RawData raw_data){
+		ArrayList<RawData> list = devices.get(raw_data.getDeviceId());
+
+		if(list == null){
+			list = new ArrayList<>();
+			list.add(raw_data);
+		}else{
+			list.add(raw_data);
+		}
+		devices.put(raw_data.getDeviceId(), list);
+		return devices;
+	}
+
 	public Date lastMinutes(int minutes){
 		Calendar later = Calendar.getInstance();
    	later.add(Calendar.MINUTE, -minutes);
    	return later.getTime();
 	}
-
 
 
 	

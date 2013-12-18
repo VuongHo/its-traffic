@@ -1,7 +1,9 @@
 import com.mongodb.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import org.json.JSONObject;
+import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 public class RawData{
 	private String device_id;
@@ -14,6 +16,7 @@ public class RawData{
 	private int lock;
 	private String date;
 	private int frame;
+	private Date date_time;
 
 	private double ROOT_LATITUDE = 10.609309;
 	private double ROOT_LONGITUDE = 106.493811;
@@ -38,7 +41,35 @@ public class RawData{
 		this.lock = (int) raw_gps_data.get("lock");
 		this.date = (String)((DBObject) raw_gps_data.get("date_key")).get("date");
 		this.frame = (int)((DBObject) raw_gps_data.get("date_key")).get("frame");
+		this.date_time = (Date)raw_gps_data.get("date_time");
 	}
+
+	public RawData(String device_id,
+								 Double latitude, Double longitude,
+								 Double speed, Double reliability, int satellite, int type, int lock,
+								 String date, int frame, Date date_time){
+		this.device_id = device_id;
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.speed = speed;
+		this.reliability = reliability;
+		this.satellite = satellite;
+		this.type = type;
+		this.lock = lock;
+		this.date = date;
+		this.frame = frame;
+		this.date_time = date_time;
+
+	}
+
+	public int getType(){
+		return this.type;
+	}
+
+	public Double getReliability(){
+		return this.reliability;
+	}
+
 
 	public boolean nodeMatchSegment(SegmentCell segment){
 		double width;
@@ -53,7 +84,7 @@ public class RawData{
 				  // node_lat_e <= (this.latitude + 0.00015) && node_lon_e <= (this.longitude + 0.00015)   ) || 
 				 // (node_lat_s <= (this.latitude + 0.00015) && node_lon_s <= (this.longitude + 0.00015) &&
 				  // node_lat_e >= (this.latitude - 0.00015) && node_lon_e >= (this.longitude - 0.00015)   ))) return false;
-		if(this.type == 1 || this.type == 2) anpha = 5.0;
+		if(this.type == 1 || this.type == 2) anpha = 10.0;
 		switch (street_type){
 			case "primary":
 				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
@@ -147,4 +178,9 @@ public class RawData{
 	public String getKey(){
 		return ""+this.device_id+""+this.longitude+""+this.latitude;
 	}
+
+	public long getDateTime(){
+		return this.date_time.getTime();
+	}
+
 }

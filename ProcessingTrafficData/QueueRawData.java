@@ -19,6 +19,7 @@ public class QueueRawData{
 		return instance;
 	}
 	public void pushTask(ArrayList<RawData> task) {
+		if(num == 5) {runQueue = new ConcurrentLinkedQueue<ArrayList<RawData>>(); num = 0;}
 		runQueue.offer(task);
 		num++;
 	}

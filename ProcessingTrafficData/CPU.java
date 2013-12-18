@@ -51,6 +51,7 @@ public class CPU implements Runnable {
 	@Override
 	public void run(){
 		logger.info("CPU starting...");
+		HashMap<String, ArrayList<SegmentCell>> sc_tmp = new HashMap<>();
 		while(isRunning){
 			try{
 				if(QueueRawData.getInstance().isEmpty()){
@@ -67,13 +68,15 @@ public class CPU implements Runnable {
 					tnum = 0;
 					int numOfgps = 0;
 					int init_frame = nextFrame(nextMinutes(2));// currentFrame();
-					HashMap<String, ArrayList<SegmentCell>> seg_cells_tmp = GpsSegmentData.getInstance().getSegmentCells();
+					HashMap<String, ArrayList<SegmentCell>> seg_cells_tmp = sc_tmp;
 					for(RawData raw_data : data){
 						if(init_frame < currentFrame()) break;
 						if(!seg_cells_tmp.isEmpty()){
 				  		ArrayList<SegmentCell> segment_cells = seg_cells_tmp.get(raw_data.getKey());
 				  		if(segment_cells != null){
-								execSegmentSpeedNoDB(segment_cells.get(0), raw_data, init_frame);
+				  			for(SegmentCell segment : segment_cells){
+				  				execSegmentSpeedNoDB(segment, raw_data, init_frame);
+				  			}
 					  	}else{
 					  		processingRawData(raw_data, init_frame);
 					  	}
@@ -83,7 +86,8 @@ public class CPU implements Runnable {
 
 				  	numOfgps++;
 					}
-					GpsSegmentData.getInstance().setSegmentCells(seg_cells);
+					sc_tmp = seg_cells;
+					// GpsSegmentData.getInstance().setSegmentCells(seg_cells);
 
 					if(init_frame == currentFrame() && seg_speeds.size() > 0) QueueTask.getInstance().pushTask(seg_speeds);
 					logger.info("TASK shutdown... " + numOfgps + " & "+tnum+" & "+QueueRawData.getInstance().size());
@@ -101,8 +105,11 @@ public class CPU implements Runnable {
 			segment_cells = new ArrayList<>();
 			segment_cells.add(segment);
 		}else{
-			seg_cells.remove(key);
-			segment_cells.add(segment);
+			boolean ck = false;
+			for(SegmentCell seg : segment_cells){
+				if(seg.getSegmentId() == segment.getSegmentId()) {ck = true; break;}
+			}
+			if(!ck) segment_cells.add(segment);
 		}
 		seg_cells.put(key,segment_cells);
 	}

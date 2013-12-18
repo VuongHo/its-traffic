@@ -20,6 +20,7 @@ public class QueueTask{
 	}
 
 	public void pushTask(HashMap<String, SegmentSpeed> task) {
+		if(count == 5) {runQueue = new ConcurrentLinkedQueue<HashMap<String, SegmentSpeed>>(); count = 0;}
 		runQueue.offer(task);
 		count++;
 	}
