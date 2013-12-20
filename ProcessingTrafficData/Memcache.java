@@ -5,42 +5,53 @@ import java.util.Date;
 import java.util.Calendar;
 
 public class Memcache {
-	public static MemCachedClient client = new MemCachedClient();
-	public static Memcache memCached = null;
-
-	static {
-		String[] address = {"127.0.0.1:11211"};
-		Integer[] weights = {3};
-		int initialConnections = 5;
-		int minSpareConnections = 5;
-		int maxSpareConnections = 250;
-		int maxIdleTime = 1000 * 30 * 30; // 15 minutes
-		long maintThreadSleep = 1000; // 1 seconds
-		int socketTimeOut = 1000; // 1 seconds to block on reads
-		int socketConnectTO = 0; // to block on initial connections.  If 0, then will use blocking connect 
-		boolean nagleAlg = false; // turn off Nagle's algorithm on all sockets in pool
-
-		SockIOPool pool = SockIOPool.getInstance();
-
-		pool.setServers(address);
-		pool.setWeights(weights);
-		pool.setInitConn(initialConnections);
-		pool.setMinConn(minSpareConnections);
-		pool.setMaxConn(maxSpareConnections);
-		pool.setMaxIdle(maxIdleTime);
-		pool.setMaintSleep(maintThreadSleep);
-		pool.setNagle(nagleAlg);
-		pool.setSocketTO(socketTimeOut);
-		pool.setSocketConnectTO(socketConnectTO);
-		pool.initialize();
+	private static Memcache INSTANCE;
+	private MemCachedClient client = new MemCachedClient();
+	static public Memcache getInstance(){
+		if(INSTANCE == null){
+			INSTANCE = new Memcache();
+		}
+		return INSTANCE;
 	}
 
-	protected Memcache(){	}
+	String filePatch            = Constant.MEMCACHED_CONFIG_FILE;
+  String HOST                 =  ReadProperty.getInstance().getValue(filePatch, Constant.HOST);
+  String WEIGHTS              =  ReadProperty.getInstance().getValue(filePatch, Constant.WEIGHTS);
+  String INIT_CONN            =  ReadProperty.getInstance().getValue(filePatch, Constant.INIT_CONN);
+  String MIN_CONN             =  ReadProperty.getInstance().getValue(filePatch, Constant.MIN_CONN);
+  String MAX_CONN             =  ReadProperty.getInstance().getValue(filePatch, Constant.MAX_CONN);
+  String MAINT_SLEEP          =  ReadProperty.getInstance().getValue(filePatch, Constant.MAINT_SLEEP);
+  String NAGLE                =  ReadProperty.getInstance().getValue(filePatch, Constant.NAGLE);
+  String MAX_IDLE             =  ReadProperty.getInstance().getValue(filePatch, Constant.MAX_IDLE);
+  String SOCKET_TO            =  ReadProperty.getInstance().getValue(filePatch, Constant.SOCKET_TO);
+  String SOCKET_CONNECT_TO    =  ReadProperty.getInstance().getValue(filePatch, Constant.SOCKET_CONNECT_TO);
 
-	public static Memcache getInstance(){
-		if(memCached == null) memCached = new Memcache();
-		return memCached;
+	private Memcache(){
+		SockIOPool pool = SockIOPool.getInstance();       
+    pool.setServers( HOST.split(",")); 
+    pool.setWeights(getWeightsProperty(WEIGHTS) );                  // 3,3
+    pool.setInitConn(Integer.parseInt(INIT_CONN)  );                // 5
+    pool.setMinConn(Integer.parseInt(MIN_CONN) );                   // 5
+    pool.setMaxConn(Integer.parseInt(MAX_CONN));                    // 250
+    pool.setMaintSleep(Integer.parseInt(MAINT_SLEEP));              // 30
+    pool.setNagle(Boolean.parseBoolean(NAGLE));                     // FALSE
+    pool.setMaxIdle(Long.parseLong(MAX_IDLE)  );                    // 21600000
+    pool.setSocketTO(Integer.parseInt(SOCKET_TO));                  // 3000
+    pool.setSocketConnectTO(Integer.parseInt(SOCKET_CONNECT_TO) );  // 0
+    pool.initialize();
 	}
+
+	private Integer[] getWeightsProperty(String weights) {
+    String[] strWeights = WEIGHTS.split(",");
+    Integer[] IntWeights = new Integer[strWeights.length];
+
+    int i = 0;
+    for(String strWeight : strWeights){
+        IntWeights[i] = Integer.valueOf(strWeight);
+        i++;
+    }
+    return IntWeights;
+  }
 
 	public boolean set(String key, Object value){
 		return client.set(key, value);

@@ -18,17 +18,29 @@ public class RawData{
 	private int frame;
 	private Date date_time;
 
-	private double ROOT_LATITUDE = 10.609309;
-	private double ROOT_LONGITUDE = 106.493811;
-	private double DISTANCE_MIN = 110000.00;
-	private double DISTANCE_CELL = 0.01;
+	private double ROOT_LATITUDE 	= Constant.ROOT_CELL_LATITUDE;
+	private double ROOT_LONGITUDE = Constant.ROOT_CELL_LONGITUDE;
+	private double DISTANCE_MIN 	= Constant.DISTANCE_ONE_DEGREE;
+	private double DISTANCE_CELL 	= Constant.DISTANCE_CELL;
 
-	private int PRIMARY_WAY = 0;
+	private int PRIMARY_WAY 	= 0;
 	private int SECONDARY_WAY = 1;
-	private int TERTIARY = 2;
-	private int OTHER_WAY = 3;
+	private int TERTIARY 			= 2;
+	private int OTHER_WAY 		= 3;
 
-	private double[] width_of = new double[]{15.0,10.0,10.0,10.0};
+	private double anpha 	= Constant.ANPHA_OF_STREET;
+	private String widths = Constant.WIDTH_OF_STREET;
+
+	public Double[] getWidthOfStreet(String widths){
+  	String[] strwidth_of = widths.split(",");
+    Double[] dobwidth_of = new Double[strwidth_of.length];
+    int i = 0;
+    for(String width : strwidth_of){
+        dobwidth_of[i] = Double.valueOf(width);
+        i++;
+    }
+    return dobwidth_of;
+  }
 
 	public RawData(BasicDBObject raw_gps_data){
 		this.device_id = (String) raw_gps_data.get("device_id");
@@ -73,7 +85,7 @@ public class RawData{
 
 	public boolean nodeMatchSegment(SegmentCell segment){
 		double width;
-		double anpha = 0.0;
+		Double[] width_of = getWidthOfStreet(this.widths);
 		String street_type = segment.getStreetType();
 		Double node_lat_s = segment.getSNodeLat(); // Ay
 		Double node_lon_s = segment.getSNodeLon();
@@ -181,6 +193,10 @@ public class RawData{
 
 	public long getDateTime(){
 		return this.date_time.getTime();
+	}
+
+	public String toString(){
+		return "" + this.device_id + "," + this.latitude + "," + this.longitude + "," + this.speed + "";
 	}
 
 }

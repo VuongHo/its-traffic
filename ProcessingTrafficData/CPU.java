@@ -31,6 +31,8 @@ public class CPU implements Runnable {
 	private int tnum;
 	private boolean isRunning;
 
+	private boolean WRITE_GPS_NOT_MATCH    = Constant.WRITE_GPS_NOT_MATCH;
+
 	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
 		db = MongoDB.db;
@@ -67,7 +69,7 @@ public class CPU implements Runnable {
 					seg_cells = new HashMap<>();
 					tnum = 0;
 					int numOfgps = 0;
-					int init_frame = nextFrame(nextMinutes(2));// currentFrame();
+					int init_frame = nextFrame(nextMinutes(5));// currentFrame();
 					HashMap<String, ArrayList<SegmentCell>> seg_cells_tmp = sc_tmp;
 					for(RawData raw_data : data){
 						if(init_frame < currentFrame()) break;
@@ -123,22 +125,33 @@ public class CPU implements Runnable {
 		Gson gson = builder.enableComplexMapKeySerialization().setPrettyPrinting().create();
 		Type type = new TypeToken<ArrayList<SegmentCell>>(){}.getType();
 
+		Boolean check_gps_matching = false;
+
 		if(segment_cell_cached == null){
 			ArrayList<SegmentCell> seg_cacheds = new ArrayList<>();			
 			DBCursor cursor = segment_cell_co.find(query);
 			while(cursor.hasNext()) {
 				SegmentCell segment = new SegmentCell((BasicDBObject) cursor.next());
-				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data, current_frame);
+				if(raw_data.nodeMatchSegment(segment)){
+					execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					check_gps_matching = true;
+				}
 				seg_cacheds.add(segment);
  			}
     	String json = gson.toJson(seg_cacheds, type);
-    	Date expiring_time = Memcache.getInstance().expiringTime(15);
+    	Date expiring_time = Memcache.getInstance().expiringTime(24*60);
 			Memcache.getInstance().add(cell_key, json, expiring_time);
 		}else{
 			ArrayList<SegmentCell> seg_cacheds = gson.fromJson(segment_cell_cached, type);
 			for(SegmentCell segment : seg_cacheds){
-				if(raw_data.nodeMatchSegment(segment)) execSegmentSpeedNoDB(segment, raw_data, current_frame);
+				if(raw_data.nodeMatchSegment(segment)){
+					execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					check_gps_matching = true;
+				}
 			}
+		}
+		if(check_gps_matching == false && WRITE_GPS_NOT_MATCH == true){
+			ApplicationLog.getInstance().writeLog(raw_data.toString());
 		}
 	}
 

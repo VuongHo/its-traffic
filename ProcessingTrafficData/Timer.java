@@ -6,9 +6,11 @@ import java.util.logging.Logger;
 public class Timer implements Runnable{
 	private static Logger logger = Logger.getLogger(Timer.class.getName());
 
+	private int TIMER    							 		 = Constant.TIMER;
+
 	public Timer(){
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		executor.scheduleAtFixedRate(this, 0, 1000*60 , TimeUnit.MILLISECONDS);
+		executor.scheduleAtFixedRate(this, 0, 1000*TIMER , TimeUnit.MILLISECONDS);
 	}
 
 	@Override

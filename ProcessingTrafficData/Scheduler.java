@@ -16,6 +16,10 @@ public class Scheduler {
 	private static Scheduler scheduler = new Scheduler();
 	private DB db;
 
+	private boolean GENNERATE_VIRTUAL_DATA = Constant.GENNERATE_VIRTUAL_DATA;
+	private boolean PRINT_LOG 						 = Constant.PRINT_LOG;
+	private int LAST_MINUTE    							 		 = Constant.LAST_MINUTE;
+
 	private Scheduler(){
 		if(MongoDB.check == false) MongoDB.openConnection();
 		db = MongoDB.db;
@@ -27,7 +31,7 @@ public class Scheduler {
 	
 	public void schedule(){
 		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(15)))).
+		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(LAST_MINUTE)))).
 																		 append("lock", 1);
 		DBCursor cursor = gpsDataCo.find(query);											
 		try {
@@ -37,10 +41,12 @@ public class Scheduler {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
 		  	RawData raw_data = new RawData(raw_gps_data);
+		  	if(raw_data.getFrame() < currentFrame()) continue;
+
 		  	data.add(raw_data);
-		  	devices = putRawDataToHash(devices, raw_data);
+		  	if(GENNERATE_VIRTUAL_DATA) devices = putRawDataToHash(devices, raw_data);
 		  }
-		  
+		  if(PRINT_LOG) System.out.println("TEST VIRTUAL DATA "+data.size());
 		  for(String key : devices.keySet()){
 				ArrayList<RawData> virtual_data = devices.get(key);
 				if(virtual_data.size() < 2) continue;
@@ -62,8 +68,8 @@ public class Scheduler {
 						int time = (int)((vd2.getDateTime() - vd1.getDateTime())/1000);
 						Double distance = distanceBetweenTwoNode(vd1, vd2);
 						Double vilocity = distance/time;
-						if(time >= 20 && time <= 40)logger.info("TEST distance:"+distanceBetweenTwoNode(vd1, vd2));
-						if(time >= 20 && time <= 40 && distance.compareTo(50.0) > 0){
+						// if(time >= 20 && time <= 40)logger.info("TEST distance:"+distanceBetweenTwoNode(vd1, vd2));
+						if(time >= 20 && time <= 40 && distance.compareTo(30.0) > 0){
 
 							double min_x = Math.abs(vd1.getLatitude() - vd2.getLatitude())/6;
 							double min_y = Math.abs(vd1.getLongitude() - vd2.getLongitude())/6;
@@ -86,6 +92,8 @@ public class Scheduler {
 				}
 			}
 		  if(data.size() > 0) QueueRawData.getInstance().pushTask(data);
+		  // System.out.println("TESt "+GENNERATE_VIRTUAL_DATA);
+		  if(PRINT_LOG) System.out.println("TEST VIRTUAL DATA "+data.size());
 		}catch(Exception e){
 			logger.info("Some thing went wrong :" );
 			e.printStackTrace();
@@ -117,6 +125,12 @@ public class Scheduler {
    	return later.getTime();
 	}
 
+	public int currentFrame(){
+		return (timeNow().getHours())*4 + (int)((timeNow().getMinutes())/15);
+	}
 
+	public Date timeNow(){
+		return new Date();
+	}
 	
 }

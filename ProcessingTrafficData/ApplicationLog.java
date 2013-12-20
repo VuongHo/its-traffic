@@ -1,22 +1,17 @@
 
-import java.util.logging.Logger;
-import java.util.logging.FileHandler;
-import java.util.logging.SimpleFormatter;
-import java.io.IOException;
+import java.io.*;
 
 public class ApplicationLog {
 	private static ApplicationLog appLog = new ApplicationLog();
-	private Logger logger = Logger.getLogger("ProcessingTrafficData");
-	private FileHandler fh;
+	private File rawFile;
 
 	public ApplicationLog(){
 		try { 
-      fh = new FileHandler("processing-traffic-data.log");
-      logger.addHandler(fh);
-      logger.setUseParentHandlers(false);
-      SimpleFormatter formatter = new SimpleFormatter();  
-      fh.setFormatter(formatter); 
-      logger.severe("My first log");  
+      rawFile = new File("log/gps-no-matching.txt");
+			if (!rawFile.getParentFile().exists()) rawFile.getParentFile().mkdirs();
+			if(!rawFile.exists()) {
+			  rawFile.createNewFile();
+			}
     } catch (SecurityException e) {  
         e.printStackTrace();  
     } catch (IOException e) {  
@@ -29,6 +24,14 @@ public class ApplicationLog {
 	}
 
 	public void writeLog(String log){
-		logger.info(log);
+		try { 
+      PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(rawFile, true)));
+			out.println(log);
+    	out.close();
+    } catch (SecurityException e) {  
+        e.printStackTrace();  
+    } catch (IOException e) {  
+        e.printStackTrace();  
+    }
 	}
 }

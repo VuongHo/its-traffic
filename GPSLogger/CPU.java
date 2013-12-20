@@ -42,7 +42,7 @@ public class CPU implements Runnable {
 				RawData raw_data = QueueTask.getInstance().popTask();
 				int hours = parseDateTimeFromString(raw_data.getDateTime()).getHours();
 				
-				if(((hours >= 21 && hours < 24 ) || (hours >= 0 && hours < 4)) && (raw_data.getType() == 1 || raw_data.getType() == 2)) continue;
+				// if(((hours >= 21 && hours < 24 ) || (hours >= 0 && hours < 4)) && (raw_data.getType() == 1 || raw_data.getType() == 2)) continue;
 				try{
 					BasicDBObject doc = new BasicDBObject("device_id", raw_data.getDeviceId()).
 																		append("latitude", raw_data.getLatitude()).
