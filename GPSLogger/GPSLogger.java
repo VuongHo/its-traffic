@@ -56,7 +56,7 @@ public class GPSLogger {
 
 						// Save data
 						String[] raw_data = gps_data.split(",");
-						if (raw_data.length == 9 || raw_data.length == 10) QueueTask.getInstance().pushTask(new RawData(raw_data));
+						if (raw_data.length == 9 || raw_data.length == 10) QueueTask.getInstance().pushTask(new RawData(raw_data, raw_data.length == 10 ? raw_data[9] : ""));
 
 						// Response result to client
 			    	// InetAddress IPAddress = receivePacket.getAddress();
@@ -70,7 +70,8 @@ public class GPSLogger {
 						// ex.printStackTrace();
 					}
 					catch (Exception e){
-						e.printStackTrace();
+						//e.printStackTrace();
+						logger.info("Some thing went wrong with GPSLogger");
 					}
 				}
 				logger.info("Exit!");

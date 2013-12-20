@@ -11,8 +11,9 @@ public class RawData{
 	private int type;
 	private int lock;
 	private String datetime;
+	private String option;
 
-	public RawData(String[] raw_data){
+	public RawData(String[] raw_data, String opts){
 		this.device_id = raw_data[0];
 		this.latitude  = Double.parseDouble(raw_data[1]);
 		this.longitude = Double.parseDouble(raw_data[2]);
@@ -22,6 +23,7 @@ public class RawData{
 		this.type      = Integer.parseInt(raw_data[6]);
 		this.lock      = Integer.parseInt(raw_data[7]);
 		this.datetime  = raw_data[8];
+		this.option    = opts;
 	}
 
 	public String getDeviceId(){
@@ -50,5 +52,8 @@ public class RawData{
 	}
 	public String getDateTime(){
 		return this.datetime;
+	}
+	public String getOption(){
+		return option;
 	}
 }
