@@ -28,7 +28,7 @@ public class RawData{
 	private int TERTIARY 			= 2;
 	private int OTHER_WAY 		= 3;
 
-	private double anpha 	= Constant.ANPHA_OF_STREET;
+	private double ANPHA 	= Constant.ANPHA_OF_STREET;
 	private String widths = Constant.WIDTH_OF_STREET;
 
 	public Double[] getWidthOfStreet(String widths){
@@ -96,34 +96,34 @@ public class RawData{
 				  // node_lat_e <= (this.latitude + 0.00015) && node_lon_e <= (this.longitude + 0.00015)   ) || 
 				 // (node_lat_s <= (this.latitude + 0.00015) && node_lon_s <= (this.longitude + 0.00015) &&
 				  // node_lat_e >= (this.latitude - 0.00015) && node_lon_e >= (this.longitude - 0.00015)   ))) return false;
-		if(this.type == 1 || this.type == 2) anpha = 10.0;
+		if(this.type == 1 || this.type == 2) ANPHA = 10.0;
 		switch (street_type){
 			case "primary":
-				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+ANPHA)/DISTANCE_MIN;
 				break;
 			case "secondary":
-				width = (width_of[SECONDARY_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[SECONDARY_WAY]+ANPHA)/DISTANCE_MIN;
 				break;
 			case "tertiary":
-				width = (width_of[TERTIARY]+anpha)/DISTANCE_MIN;
+				width = (width_of[TERTIARY]+ANPHA)/DISTANCE_MIN;
 				break;
 			case "motorway":
-				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+ANPHA)/DISTANCE_MIN;
 				break;
 			case "motorway_link":
-				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+ANPHA)/DISTANCE_MIN;
 				break;
 			case "trunk":
-				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+ANPHA)/DISTANCE_MIN;
 				break;
 			case "trunk_link":
-				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+ANPHA)/DISTANCE_MIN;
 				break;
 			case "primary_link":
-				width = (width_of[PRIMARY_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[PRIMARY_WAY]+ANPHA)/DISTANCE_MIN;
 				break;
 			default:
-				width = (width_of[OTHER_WAY]+anpha)/DISTANCE_MIN;
+				width = (width_of[OTHER_WAY]+ANPHA)/DISTANCE_MIN;
 		}
 		// AB
 		Double a1 = -(node_lat_s - node_lat_e);

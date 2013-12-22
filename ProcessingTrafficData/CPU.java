@@ -32,6 +32,7 @@ public class CPU implements Runnable {
 	private boolean isRunning;
 
 	private boolean WRITE_GPS_NOT_MATCH    = Constant.WRITE_GPS_NOT_MATCH;
+	private boolean GET_ALL_SEGMENT        = Constant.GET_ALL_SEGMENT;
 
 	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
@@ -233,17 +234,20 @@ public class CPU implements Runnable {
 	}
 
 	public BasicDBObject findSegmentCellQuery(int cell_x, int cell_y){
-		ArrayList<BasicDBObject> cond = new ArrayList<BasicDBObject>();
-		cond.add(new BasicDBObject("street.street_type", "motorway"));
-		cond.add(new BasicDBObject("street.street_type", "motorway_link"));
-		cond.add(new BasicDBObject("street.street_type", "trunk"));
-		cond.add(new BasicDBObject("street.street_type", "trunk_link"));
-		cond.add(new BasicDBObject("street.street_type", "primary"));
-		cond.add(new BasicDBObject("street.street_type", "primary_link"));
-		cond.add(new BasicDBObject("street.street_type", "secondary"));
-		cond.add(new BasicDBObject("street.street_type", "secondary_link"));
-		BasicDBObject query = new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y).append("$or", cond);
-		return query;
+		if(GET_ALL_SEGMENT){
+			return new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y);
+		}else{
+			ArrayList<BasicDBObject> cond = new ArrayList<BasicDBObject>();
+			cond.add(new BasicDBObject("street.street_type", "motorway"));
+			cond.add(new BasicDBObject("street.street_type", "motorway_link"));
+			cond.add(new BasicDBObject("street.street_type", "trunk"));
+			cond.add(new BasicDBObject("street.street_type", "trunk_link"));
+			cond.add(new BasicDBObject("street.street_type", "primary"));
+			cond.add(new BasicDBObject("street.street_type", "primary_link"));
+			cond.add(new BasicDBObject("street.street_type", "secondary"));
+			cond.add(new BasicDBObject("street.street_type", "secondary_link"));
+			return new BasicDBObject("cell_x", cell_x).append("cell_y", cell_y).append("$or", cond);
+		}
 	}
 	public int currentFrame(){
 		return (timeNow().getHours())*4 + (int)((timeNow().getMinutes())/15);

@@ -32,4 +32,6 @@ public class Constant {
 
     static public int TIMER                       = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "TIMER"));
     static public int LAST_MINUTE                 = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "LAST_MINUTE"));
+
+    static public Boolean GET_ALL_SEGMENT         = Boolean.parseBoolean(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "GET_ALL_SEGMENT"));
 }
