@@ -34,4 +34,7 @@ public class Constant {
     static public int LAST_MINUTE                 = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "LAST_MINUTE"));
 
     static public Boolean GET_ALL_SEGMENT         = Boolean.parseBoolean(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "GET_ALL_SEGMENT"));
+
+    static public int EXPIRING_TIME_CACHE         = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "EXPIRING_TIME_CACHE"));
+    static public int TIME_INSERT_NEW_FRAME       = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "TIME_INSERT_NEW_FRAME"));
 }

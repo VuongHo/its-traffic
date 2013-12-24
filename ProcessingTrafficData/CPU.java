@@ -33,6 +33,8 @@ public class CPU implements Runnable {
 
 	private boolean WRITE_GPS_NOT_MATCH    = Constant.WRITE_GPS_NOT_MATCH;
 	private boolean GET_ALL_SEGMENT        = Constant.GET_ALL_SEGMENT;
+	private int EXPIRING_TIME_CACHE    		 = Constant.EXPIRING_TIME_CACHE;
+	private int TIME_INSERT_NEW_FRAME    	 = Constant.TIME_INSERT_NEW_FRAME;
 
 	public CPU(){
 		if(MongoDB.check == false) MongoDB.openConnection();
@@ -70,7 +72,7 @@ public class CPU implements Runnable {
 					seg_cells = new HashMap<>();
 					tnum = 0;
 					int numOfgps = 0;
-					int init_frame = nextFrame(nextMinutes(5));// currentFrame();
+					int init_frame = nextFrame(nextMinutes(TIME_INSERT_NEW_FRAME));// currentFrame();
 					HashMap<String, ArrayList<SegmentCell>> seg_cells_tmp = sc_tmp;
 					for(RawData raw_data : data){
 						if(init_frame < currentFrame()) break;
@@ -140,7 +142,7 @@ public class CPU implements Runnable {
 				seg_cacheds.add(segment);
  			}
     	String json = gson.toJson(seg_cacheds, type);
-    	Date expiring_time = Memcache.getInstance().expiringTime(24*60);
+    	Date expiring_time = Memcache.getInstance().expiringTime(EXPIRING_TIME_CACHE*60);
 			Memcache.getInstance().add(cell_key, json, expiring_time);
 		}else{
 			ArrayList<SegmentCell> seg_cacheds = gson.fromJson(segment_cell_cached, type);
