@@ -18,7 +18,7 @@ public class Scheduler {
 
 	private boolean GENNERATE_VIRTUAL_DATA = Constant.GENNERATE_VIRTUAL_DATA;
 	private boolean PRINT_LOG 						 = Constant.PRINT_LOG;
-	private int LAST_MINUTE    							 		 = Constant.LAST_MINUTE;
+	private int LAST_MINUTE    						 = Constant.LAST_MINUTE;
 
 	private Scheduler(){
 		if(MongoDB.check == false) MongoDB.openConnection();
@@ -30,8 +30,9 @@ public class Scheduler {
 	}
 	
 	public void schedule(){
+		Date last_minutes = lastMinutes(LAST_MINUTE);
 		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(lastMinutes(LAST_MINUTE)))).
+		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(last_minutes)).
 																		 append("lock", 1);
 		DBCursor cursor = gpsDataCo.find(query);											
 		try {
@@ -41,8 +42,7 @@ public class Scheduler {
 		  while(cursor.hasNext()) {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
 		  	RawData raw_data = new RawData(raw_gps_data);
-		  	if(raw_data.getFrame() < currentFrame()) continue;
-
+		  	if(raw_data.getDateTime() < last_minutes.getTime()) continue;
 		  	data.add(raw_data);
 		  	if(GENNERATE_VIRTUAL_DATA) devices = putRawDataToHash(devices, raw_data);
 		  }
