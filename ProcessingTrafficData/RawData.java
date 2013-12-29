@@ -147,6 +147,23 @@ public class RawData{
 		return true;
 	}
 
+	public Double distance(SegmentCell segment){
+		String street_type = segment.getStreetType();
+		Double node_lat_s  = segment.getSNodeLat(); // Ay
+		Double node_lon_s  = segment.getSNodeLon();
+		Double node_lat_e  = segment.getENodeLat(); // By
+		Double node_lon_e  = segment.getENodeLon();
+
+		// AB
+		Double a1 = -(node_lat_s - node_lat_e);
+		Double b1 = 	node_lon_s - node_lon_e;
+		Double c1 = -(a1*node_lon_s + b1*node_lat_s);
+
+		Double d_node_AB = Math.abs(longitude*a1 + latitude*b1 + c1)/Math.sqrt(Math.pow(a1,2)+Math.pow(b1,2));
+
+		return d_node_AB;
+	}
+
 	public String getDeviceId(){
 		return this.device_id;
 	}

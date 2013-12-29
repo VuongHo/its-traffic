@@ -27,7 +27,7 @@ public class CPU implements Runnable {
 	private	DBCollection segment_cell_co;
 	private Gson gson;
 	private HashMap<String, SegmentSpeed> seg_speeds;
-	private HashMap<String, ArrayList<SegmentCell>> seg_cells;
+	private HashMap<String, SegmentCell> seg_cells;
 	private int tnum;
 	private boolean isRunning;
 
@@ -56,7 +56,7 @@ public class CPU implements Runnable {
 	@Override
 	public void run(){
 		logger.info("CPU starting...");
-		HashMap<String, ArrayList<SegmentCell>> sc_tmp = new HashMap<>();
+		HashMap<String, SegmentCell> sc_tmp = new HashMap<>();
 		while(isRunning){
 			try{
 				if(QueueRawData.getInstance().isEmpty()){
@@ -73,20 +73,22 @@ public class CPU implements Runnable {
 					tnum = 0;
 					int numOfgps = 0;
 					int init_frame = nextFrame(nextMinutes(TIME_INSERT_NEW_FRAME));// currentFrame();
-					HashMap<String, ArrayList<SegmentCell>> seg_cells_tmp = sc_tmp;
+					HashMap<String, SegmentCell> seg_cells_tmp = sc_tmp;
+					SegmentCell segment;
+
 					for(RawData raw_data : data){
 						if(init_frame < currentFrame()) break;
 						if(!seg_cells_tmp.isEmpty()){
-				  		ArrayList<SegmentCell> segment_cells = seg_cells_tmp.get(raw_data.getKey());
-				  		if(segment_cells != null){
-				  			for(SegmentCell segment : segment_cells){
-				  				execSegmentSpeedNoDB(segment, raw_data, init_frame);
-				  			}
+				  		segment = seg_cells_tmp.get(raw_data.getKey());
+				  		if(segment != null){
+				  			execSegmentSpeedNoDB(segment, raw_data, init_frame);
 					  	}else{
-					  		processingRawData(raw_data, init_frame);
+					  		segment = processingRawData(raw_data, init_frame);
+					  		if(segment != null) execSegmentSpeedNoDB(segment, raw_data, init_frame);
 					  	}
 				  	}else{
-				  		processingRawData(raw_data, init_frame);
+				  		segment = processingRawData(raw_data, init_frame);
+				  		if(segment != null) execSegmentSpeedNoDB(segment, raw_data, init_frame);
 				  	}	  	
 
 				  	numOfgps++;
@@ -94,7 +96,7 @@ public class CPU implements Runnable {
 					sc_tmp = seg_cells;
 					// GpsSegmentData.getInstance().setSegmentCells(seg_cells);
 
-					if(init_frame == currentFrame() && seg_speeds.size() > 0) QueueTask.getInstance().pushTask(seg_speeds);
+					if(init_frame == currentFrame() && !seg_speeds.isEmpty()) QueueTask.getInstance().pushTask(seg_speeds);
 					logger.info("TASK shutdown... " + numOfgps + " & "+tnum+" & "+QueueRawData.getInstance().size());
 				}
 			}catch(Exception e){
@@ -104,22 +106,7 @@ public class CPU implements Runnable {
 		}
 	}
 
-	public void addSegmentCell(String key, SegmentCell segment){
-		ArrayList<SegmentCell> segment_cells = seg_cells.get(key);
-		if(segment_cells == null){
-			segment_cells = new ArrayList<>();
-			segment_cells.add(segment);
-		}else{
-			boolean ck = false;
-			for(SegmentCell seg : segment_cells){
-				if(seg.getSegmentId() == segment.getSegmentId()) {ck = true; break;}
-			}
-			if(!ck) segment_cells.add(segment);
-		}
-		seg_cells.put(key,segment_cells);
-	}
-
-	public void processingRawData(RawData raw_data, int current_frame) throws Exception {
+	public SegmentCell processingRawData(RawData raw_data, int current_frame) throws Exception {
 		BasicDBObject query = findSegmentCellQuery(raw_data.getCellX(), raw_data.getCellY());
 		String cell_key     = cellKey(raw_data.getCellX(), raw_data.getCellY());
 		String segment_cell_cached =  (String) Memcache.getInstance().get(cell_key);
@@ -129,6 +116,8 @@ public class CPU implements Runnable {
 		Type type = new TypeToken<ArrayList<SegmentCell>>(){}.getType();
 
 		Boolean check_gps_matching = false;
+		// select segment nearest
+		ArrayList<SegmentCell> node_segments = new ArrayList<>();
 
 		if(segment_cell_cached == null){
 			ArrayList<SegmentCell> seg_cacheds = new ArrayList<>();			
@@ -136,7 +125,8 @@ public class CPU implements Runnable {
 			while(cursor.hasNext()) {
 				SegmentCell segment = new SegmentCell((BasicDBObject) cursor.next());
 				if(raw_data.nodeMatchSegment(segment)){
-					execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					// execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					node_segments.add(segment);
 					check_gps_matching = true;
 				}
 				seg_cacheds.add(segment);
@@ -148,7 +138,8 @@ public class CPU implements Runnable {
 			ArrayList<SegmentCell> seg_cacheds = gson.fromJson(segment_cell_cached, type);
 			for(SegmentCell segment : seg_cacheds){
 				if(raw_data.nodeMatchSegment(segment)){
-					execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					// execSegmentSpeedNoDB(segment, raw_data, current_frame);
+					node_segments.add(segment);
 					check_gps_matching = true;
 				}
 			}
@@ -156,10 +147,27 @@ public class CPU implements Runnable {
 		if(check_gps_matching == false && WRITE_GPS_NOT_MATCH == true){
 			ApplicationLog.getInstance().writeLog(raw_data.toString());
 		}
+
+		if(node_segments.isEmpty()) return null;
+		else return selectNearestSegment(node_segments, raw_data);
+	}
+
+	public SegmentCell selectNearestSegment(ArrayList<SegmentCell> node_segments, RawData raw_data){
+		Double min_distance = null;
+		SegmentCell seg = new SegmentCell();
+		Double d_temp;
+		for(SegmentCell segment : node_segments){
+			if(min_distance == null) {min_distance = raw_data.distance(segment); seg = segment; }
+			else{
+				d_temp = raw_data.distance(segment);
+				if(Double.compare(d_temp, min_distance) < 0 ){ min_distance = d_temp; seg = segment;}
+			}
+		}
+		return seg;
 	}
 
 	public void execSegmentSpeedNoDB(SegmentCell segment, RawData raw_data, int current_frame){
-		String seg_speed_key = raw_data.getDate() + Integer.toString(raw_data.getFrame()) + Integer.toString(segment.getSegmentId()) + Integer.toString(segment.getCellId());
+		String seg_speed_key = raw_data.getDate() + Integer.toString(raw_data.getFrame()) + Integer.toString(segment.getSegmentId()) + Integer.toString(segment.getStreetId());
 		SegmentSpeed seg_speed = seg_speeds.get(seg_speed_key);
 		if(seg_speed == null){
 			seg_speed = new SegmentSpeed(segment.getSegmentId(),
@@ -181,7 +189,8 @@ public class CPU implements Runnable {
 				seg_speeds.put(seg_speed_key, seg_speed);
 			// }
 		}
-		addSegmentCell(raw_data.getKey(),segment);
+
+		seg_cells.put(raw_data.getKey(),segment);
 		tnum++;
 	}
 

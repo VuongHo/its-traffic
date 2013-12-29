@@ -12,6 +12,8 @@ public class SegmentCell {
 	private String street_type;
 	private int street_id;
 
+	public SegmentCell(){}
+
 	public SegmentCell(int segment_id, double s_node_lat, double s_node_lon, double e_node_lat, double e_node_lon,
 										 int cell_id, int cell_x, int cell_y,
 										 String street_type, int street_id){

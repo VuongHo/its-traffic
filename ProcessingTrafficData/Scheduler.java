@@ -32,9 +32,9 @@ public class Scheduler {
 	public void schedule(){
 		Date last_minutes = lastMinutes(LAST_MINUTE);
 		DBCollection gpsDataCo = db.getCollection("gps_data");
-		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(last_minutes)).
+		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(last_minutes))).
 																		 append("lock", 1);
-		DBCursor cursor = gpsDataCo.find(query);											
+		DBCursor cursor = gpsDataCo.find(query);
 		try {
 			ArrayList<RawData> data = new ArrayList<>();
 			HashMap<String, ArrayList<RawData>> devices = new HashMap<>();;
