@@ -78,6 +78,8 @@ public class CPU implements Runnable {
 
 					for(RawData raw_data : data){
 						if(init_frame < currentFrame()) break;
+						if(raw_data.getSpeed().compareTo(0.0) == 0) continue;
+
 						if(!seg_cells_tmp.isEmpty()){
 				  		segment = seg_cells_tmp.get(raw_data.getKey());
 				  		if(segment != null){

@@ -69,7 +69,7 @@ public class Scheduler {
 						Double distance = distanceBetweenTwoNode(vd1, vd2);
 						Double vilocity = distance/time;
 						// if(time >= 20 && time <= 40)logger.info("TEST distance:"+distanceBetweenTwoNode(vd1, vd2));
-						if(time >= 20 && time <= 40 && distance.compareTo(30.0) > 0){
+						if(time >= 25 && time <= 35 && distance.compareTo(30.0) > 0){
 
 							double min_x = Math.abs(vd1.getLatitude() - vd2.getLatitude())/6;
 							double min_y = Math.abs(vd1.getLongitude() - vd2.getLongitude())/6;
@@ -86,6 +86,10 @@ public class Scheduler {
 																						 vd1.getFrame(),
 																						 new Date(vd1.getDateTime() + ((int)(time/6))*i*1000));
 								data.add(v_data);
+								if(i == 5){
+									if(vd2.getSpeed().compareTo(0.0) == 0) vd2.setSpeed(vilocity*3.6);
+									data.add(vd2);
+								}
 							}
 						}
 					}

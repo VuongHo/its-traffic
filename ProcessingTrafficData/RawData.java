@@ -180,6 +180,10 @@ public class RawData{
 		return this.speed;
 	}
 
+	public void setSpeed(Double speed){
+		this.speed = speed;
+	}
+
 	public int getSatellite(){
 		return this.satellite;
 	}
