@@ -19,6 +19,7 @@ public class Scheduler {
 	private boolean GENNERATE_VIRTUAL_DATA = Constant.GENNERATE_VIRTUAL_DATA;
 	private boolean PRINT_LOG 						 = Constant.PRINT_LOG;
 	private int LAST_MINUTE    						 = Constant.LAST_MINUTE;
+	private int LIMIT_RECORDS 						 = Constant.LIMIT_RECORDS;
 
 	private Scheduler(){
 		if(MongoDB.check == false) MongoDB.openConnection();
@@ -34,7 +35,7 @@ public class Scheduler {
 		DBCollection gpsDataCo = db.getCollection("gps_data");
 		BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$gte", new ObjectId(last_minutes))).
 																		 append("lock", 1);
-		DBCursor cursor = gpsDataCo.find(query);
+		DBCursor cursor = gpsDataCo.find(query).limit(LIMIT_RECORDS);
 		try {
 			ArrayList<RawData> data = new ArrayList<>();
 			HashMap<String, ArrayList<RawData>> devices = new HashMap<>();;

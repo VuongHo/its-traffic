@@ -37,4 +37,6 @@ public class Constant {
 
     static public int EXPIRING_TIME_CACHE         = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "EXPIRING_TIME_CACHE"));
     static public int TIME_INSERT_NEW_FRAME       = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "TIME_INSERT_NEW_FRAME"));
+    
+    static public int LIMIT_RECORDS               = Integer.parseInt(ReadProperty.getInstance().getValue(APPLICATION_CONFIG_FILE, "LIMIT_RECORDS"));
 }
