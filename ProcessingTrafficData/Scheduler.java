@@ -44,7 +44,7 @@ public class Scheduler {
 		  	BasicDBObject raw_gps_data = (BasicDBObject) cursor.next();
 		  	RawData raw_data = new RawData(raw_gps_data);
 		  	if(raw_data.getDateTime() < last_minutes.getTime()) continue;
-		  	data.add(raw_data);
+		  	if(raw_data.getSpeed().compareTo(0.0) > 0) data.add(raw_data);
 		  	if(GENNERATE_VIRTUAL_DATA) devices = putRawDataToHash(devices, raw_data);
 		  }
 		  if(PRINT_LOG) System.out.println("TEST VIRTUAL DATA "+data.size());
