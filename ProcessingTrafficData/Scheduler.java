@@ -95,7 +95,7 @@ public class Scheduler {
 								}
 							}
 						}
-						if(time >= 50 && time <= 70 && distance.compareTo(50.0) > 0){
+						if(time > 35 && distance.compareTo(50.0) > 0){
 							if(vd2.getSpeed().compareTo(0.0) == 0){
 								vd2.setSpeed(vilocity*3.6);
 								data.add(vd2);
