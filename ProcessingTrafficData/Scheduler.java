@@ -48,9 +48,11 @@ public class Scheduler {
 		  	if(GENNERATE_VIRTUAL_DATA) devices = putRawDataToHash(devices, raw_data);
 		  }
 		  if(PRINT_LOG) System.out.println("TEST VIRTUAL DATA "+data.size());
+		  int v0 = 0;
+		  int v1 = 0;
 		  for(String key : devices.keySet()){
 				ArrayList<RawData> virtual_data = devices.get(key);
-				if(virtual_data.size() < 2) continue;
+				if(virtual_data.size() < 2){ v1++; continue;}
 				Collections.sort(virtual_data, new Comparator<RawData>() {
 		        @Override
 		        public int compare(RawData raw_data_1, RawData  raw_data_2)
@@ -89,9 +91,10 @@ public class Scheduler {
 								data.add(v_data);
 							}
 						}
-						if(vd2.getSpeed().compareTo(0.0) == 0){
+						if(vd2.getSpeed().compareTo(0.0) == 0 && distance.compareTo(0.0) > 0){
 							vd2.setSpeed(vilocity*3.6);
 							data.add(vd2);
+							v0++;
 						}
 					}
 				}
@@ -99,6 +102,8 @@ public class Scheduler {
 		  if(data.size() > 0) QueueRawData.getInstance().pushTask(data);
 		  // System.out.println("TESt "+GENNERATE_VIRTUAL_DATA);
 		  if(PRINT_LOG) System.out.println("TEST VIRTUAL DATA "+data.size());
+		  if(PRINT_LOG) System.out.println("VILOCITY == 0 : "+v0);
+		  if(PRINT_LOG) System.out.println("VILOCITY 1 : "+v1);
 		}catch(Exception e){
 			logger.info("Some thing went wrong :" );
 			e.printStackTrace();
