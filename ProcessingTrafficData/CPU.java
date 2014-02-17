@@ -31,6 +31,7 @@ public class CPU implements Runnable {
 	private int tnum;
 	private boolean isRunning;
 
+	private boolean PRINT_LOG 						 = Constant.PRINT_LOG;
 	private boolean WRITE_GPS_NOT_MATCH    = Constant.WRITE_GPS_NOT_MATCH;
 	private boolean GET_ALL_SEGMENT        = Constant.GET_ALL_SEGMENT;
 	private int EXPIRING_TIME_CACHE    		 = Constant.EXPIRING_TIME_CACHE;
@@ -99,7 +100,7 @@ public class CPU implements Runnable {
 					// GpsSegmentData.getInstance().setSegmentCells(seg_cells);
 
 					if(init_frame == currentFrame() && !seg_speeds.isEmpty()) QueueTask.getInstance().pushTask(seg_speeds);
-					logger.info("TASK shutdown... " + numOfgps + " & "+tnum+" & "+QueueRawData.getInstance().size());
+					if(PRINT_LOG) logger.info("TASK shutdown... " + numOfgps + " & "+tnum+" & "+QueueRawData.getInstance().size());
 				}
 			}catch(Exception e){
 				logger.info("Some thing went wrong :" );

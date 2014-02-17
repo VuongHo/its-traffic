@@ -52,7 +52,7 @@ public class GPSLogger {
 						DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 						serverSocket.receive(receivePacket);
 						String gps_data = new String(receivePacket.getData());
-						logger.info("RECEIVE: " + gps_data + " size: " + receivePacket.getLength() + " bytes" + " - " + receivePacket.getAddress());
+						// logger.info("RECEIVE: " + gps_data + " size: " + receivePacket.getLength() + " bytes" + " - " + receivePacket.getAddress());
 
 						// Save data
 						String[] raw_data = gps_data.split(",");
