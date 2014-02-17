@@ -108,7 +108,7 @@ public class Scheduler {
 			logger.info("Some thing went wrong :" );
 			e.printStackTrace();
 		}finally{
-		  logger.info("scheduler done...");
+		  // logger.info("scheduler done...");
 		}
 	}
 
